@@ -1,0 +1,17 @@
+import pandas as pd
+from multifile_iterator import import_iterate_time
+import datetime as dt
+from db_filters import filter_db
+
+
+data_root = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\datasource\\'
+file_root = 'EVT_MISS_PZ_'
+date_begin = dt.datetime(2015,1,1)
+date_end = dt.datetime(2023,12,31)
+
+areu_db = import_iterate_time('year',[date_begin,date_end],data_root,file_root,'.csv','_MI',"foo",import_params={'encoding':'ISO-8859-1','on_bad_lines':'skip'})
+
+areu_db_cardio = filter_db(areu_db,1,'MOTIVO_DTL','CARDIOCIRCOLATORIA')
+areu_db_cardio_home = filter_db(areu_db_cardio,1,'LUOGO',['CASA','STR SOCIO SANITARIA'])
+
+br = 1
