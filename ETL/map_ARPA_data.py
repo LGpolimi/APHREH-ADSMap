@@ -6,10 +6,10 @@ import numpy as np
 import calendar
 warnings.filterwarnings("ignore")
 
-root_path = 'C:\\Users\\Lorenzo\\Documents\\Work\\Research\\2411_Environmental_RiskModel\\Set_up_I\\datasource\\'
+root_path = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\datasource\\'
 filenamepre = 'TEMP2m_'
 filenamepost = 'UTCplus1.txt'
-outfold = 'C:\\Users\\Lorenzo\\Documents\\Work\\Research\\2411_Environmental_RiskModel\\Set_up_I\\datasource\\'
+outfold = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\datasource\\'
 refgridname = 'LMB1B_MM'
 refgrid = pd.read_csv(root_path+refgridname+'.csv')
 fetchlimits = 1
@@ -97,7 +97,7 @@ for ityear in [2018,2023]:
         currday = dt.datetime(startdate[0],startdate[1],startdate[2])
         stopdate = dt.datetime(endate[0],endate[1],endate[2]) + dt.timedelta(days=1)
         stdtid,stdtfn = datetostr(currday)
-        eddtid,eddtfn = datetostr(dt.datetime(endate[0],endate[1],endate[2]))
+        eddtid,eddtfn = datetostr(stopdate - dt.timedelta(hours=1))
         outdtstr = stdtid + '_to_' + eddtid
         totdays = (stopdate-currday).days
         totsheets = totdays * 24
