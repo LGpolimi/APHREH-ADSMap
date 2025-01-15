@@ -58,7 +58,33 @@ def import_iterate_time(granularity,extremes,folder,file_root,file_extension,fil
         else:
             file_name = folder + file_root + date_string + file_extension
             print('Importing ' + file_root + date_string + file_extension)
-        if file_extension == '.csv' or file_extension == '.tab' or file_extension == '.txt':
+        if file_extension == '.csv':
+            if merge_flag == 0:
+                try:
+                    if chunks_mode == 0:
+                        df = pd.read_csv(file_name,sep=delimiter,low_memory=False,encoding=encoding)
+                    else:
+                        chunklist = list()
+                        for chunk in  pd.read_csv(file_name,sep=delimiter,low_memory=False,encoding=encoding,
+                                                 chunksize=500000):
+                            chunklist.append(chunk)
+                        df = pd.concat(chunklist)
+                    merge_flag = 1
+                except:
+                    print('Error importing ' + file_name + ' or file not found.')
+            else:
+                try:
+                    if chunks_mode == 0:
+                        df = pd.concat([df,pd.read_csv(file_name,sep=delimiter,low_memory=False,encoding=encoding)])
+                    else:
+                        chunklist = list()
+                        for chunk in  pd.read_csv(file_name,sep=delimiter,low_memory=False,encoding=encoding,
+                                                 chunksize=500000):
+                            chunklist.append(chunk)
+                        df = pd.concat([df,pd.concat(chunklist)])
+                except:
+                    print('Error importing ' + file_name + ' or file not found.')
+        if file_extension == '.tab' or file_extension == '.txt':
             if merge_flag == 0:
                 try:
                     if chunks_mode == 0:
