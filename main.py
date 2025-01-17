@@ -4,6 +4,7 @@ import conf
 from data_import import import_data, slice_data, uniform_data
 from A_expnonexp_days import define_exposure_days
 from B_incidence_diff import compute_zones_incidence, compute_incidence_baseline, compute_incidence_differentials, cross_grid_computation, compute_weights
+from C_compute_index import compute_index_main
 
 # DATA IMPORT
 exposure_grid, outcome, refgrid, crossgrid = import_data()
@@ -25,8 +26,11 @@ exposure, outcome = uniform_data(exposure,outcome)
 for y in conf.years:
     expth = exp_threshold[y]
     weights = compute_weights(expth,exposure)
+    expdays = [ed for ed in exposed_days if pd.to_datetime(ed).year == y]
+    nonexpdays = [ned for ned in non_exposed_days if pd.to_datetime(ned).year == y]
 
     # COMPUTATION OF VULNERABILITY INDEX
+    index_df, permutations_r, permutations_p = compute_index_main(incidence_differentials,weights,expdays,nonexpdays)
 
 
     br = 1

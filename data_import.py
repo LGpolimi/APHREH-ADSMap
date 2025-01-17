@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import conf
 
 def decode_datestr(db):
@@ -38,6 +39,8 @@ def slice_data(db,years,months,zones="foo"):
     return db
 
 def uniform_data(exposure,outcome):
+    exposure = exposure.replace(conf.exposure_nullvalues, np.nan).dropna()
+    outcome = outcome.replace(conf.outcome_nullvalues, np.nan).dropna()
     if 'DATE_STR' not in exposure.columns.values:
         if not exposure.index.name != 'DATE_STR':
             exposure.index.rename('DATE_STR',inplace=True)

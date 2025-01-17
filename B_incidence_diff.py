@@ -142,15 +142,28 @@ def cross_grid_computation(indb,crossgridmap,uid_fields,proportion_fields):
 def compute_weights(expth,exposure):
     expproc = exposure.copy(deep=True)
     expnodate = expproc.drop(columns='DATE').copy(deep=True)
-    weights_raw = abs(expnodate-expth)
+    weights_raw = expnodate - expth
 
     nan_cells_weights_raw = weights_raw.isna()
     nan_or_null_values = exposure.isna() | exposure.isin(conf.exposure_nullvalues)
     selected_cells = nan_cells_weights_raw | nan_or_null_values
     weights_raw[selected_cells] = 0.01
 
-    min_val = weights_raw.min().min()
-    max_val = weights_raw.max().max()
-    weights = 0.01 + (weights_raw - min_val) * (0.99 / (max_val - min_val))
+    pos_weights = weights_raw[weights_raw >= 0]
+    neg_weights = weights_raw[weights_raw < 0]
+
+    pos_weights_log = np.log1p(pos_weights)
+    neg_weights_log = np.log1p(-neg_weights)
+
+    min_pos = pos_weights_log.min().min()
+    max_pos = pos_weights_log.max().max()
+    pos_weights_norm = (pos_weights_log - min_pos) * (1 / (max_pos - min_pos))
+
+    min_neg = neg_weights_log.min().min()
+    max_neg = neg_weights_log.max().max()
+    neg_weights_norm = (neg_weights_log - min_neg) * (1 / (max_neg - min_neg))
+
+    weights = pos_weights_norm.combine_first(neg_weights_norm)
+    weights = weights.abs()
 
     return weights

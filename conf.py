@@ -18,9 +18,9 @@ source_geo_level = 'MIL1B'
 source_geoid = source_geo_level + '_IDcu'
 cross_area_field = 'Area'
 
-years = [2018,2019,2023]
+years = [2019,2023]
 months = [5,6,7,8,9]
-zones = [1,2,3,10,12,15]
+zones = ['ALL']
 
 exposure_nullvalues = [-1,-9999]
 outcome_nullvalues = [-1,-9999]
@@ -31,3 +31,4 @@ baseline_semiwindow = 15
 dynawindow = 1
 semiwindow_max = 60
 bootstrap_iterations = 100
+random_noise = 0.1
