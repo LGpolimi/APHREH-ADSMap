@@ -38,7 +38,7 @@ def compute_zones_incidence(outcome,refgrid):
         y_dates = [dt for dt in alldates if pd.to_datetime(dt).year == y]
         if y+1 in allyears:
             for dp in range(conf.lag+1):
-                y_dates.append(max(y_dates) + timedelta(days=dp))
+                y_dates.append(pd.to_datetime(max(y_dates)) + timedelta(days=dp))
         min_d = pd.to_datetime(min(y_dates))
         max_d = pd.to_datetime(max(y_dates))
         for bsa in bsa_list:
@@ -93,6 +93,11 @@ def compute_incidence_baseline(incidence,non_exp_days):
                             window_nonexp = [ned for ned in window if ned in y_non_exposed]
                             extension += 1
                             print('Extending baseline window: ' + str(extension))
+                            if extension > conf.semiwindow_max:
+                                print('No viable values found skipping day ', td)
+                                incbaseline.loc[incbaseline['DATE'] == td, bsa] = -1
+                                nullline = 1
+                                break
                     else:
                         incbaseline.loc[incbaseline['DATE'] == td, bsa] = -1
                         nullline = 1
@@ -110,3 +115,42 @@ def compute_incidence_differentials(incidence,incidence_baseline):
     incidence_differentials = incidence - incidence_baseline
     incidence_differentials['DATE'] = incidence['DATE']
     return incidence_differentials
+
+def cross_grid_computation(indb,crossgridmap,uid_fields,proportion_fields):
+    outdb = pd.DataFrame(index=indb.index)
+    dest_grid_uids = crossgridmap[uid_fields[1]].unique()
+    dest_grid_uids.sort()
+    totiters = len(dest_grid_uids)
+    iti = 0
+    for id in dest_grid_uids:
+        subset = crossgridmap.loc[crossgridmap[uid_fields[1]] == id].copy(deep=True)
+        subset['RATIO'] = subset[proportion_fields[0]] / subset[proportion_fields[1]]
+        source_uids = subset[uid_fields[0]].unique()
+        weights_dict = {}
+        for sid in source_uids:
+            weight = subset.loc[subset[uid_fields[0]] == sid,'RATIO'].values[0]
+            weights_dict[sid] = weight
+        for row in indb.iterrows():
+            newval = 0
+            for key in weights_dict.keys():
+                newval = newval + row[1][key] * weights_dict[key]
+            outdb.loc[row[0],id] = newval
+        iti = iti + 1
+        print('Computing crossed values ' + str(iti) + ' out of ' + str(totiters) + ' iterations (' + str(iti/totiters*100) + '%)')
+    return outdb
+
+def compute_weights(expth,exposure):
+    expproc = exposure.copy(deep=True)
+    expnodate = expproc.drop(columns='DATE').copy(deep=True)
+    weights_raw = abs(expnodate-expth)
+
+    nan_cells_weights_raw = weights_raw.isna()
+    nan_or_null_values = exposure.isna() | exposure.isin(conf.exposure_nullvalues)
+    selected_cells = nan_cells_weights_raw | nan_or_null_values
+    weights_raw[selected_cells] = 0.01
+
+    min_val = weights_raw.min().min()
+    max_val = weights_raw.max().max()
+    weights = 0.01 + (weights_raw - min_val) * (0.99 / (max_val - min_val))
+
+    return weights
