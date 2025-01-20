@@ -3,8 +3,8 @@ import glob
 import pandas as pd
 from crossgrid import cross_grid_computation
 
-rootpath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\datasource\\'
-outpath = rootpath + 'analysis_ready\\'
+rootpath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\datasource\\MI_T\\'
+outpath = rootpath
 outname = 'exposure_data'
 geolevel_source = 'MIL1B'
 geolevel_dest = 'MIL2A'
@@ -53,9 +53,9 @@ daily_max_df.index.rename('DATE_STR',inplace=True)
 if 'DATE' in daily_max_df.columns:
     daily_max_df.drop(columns=['DATE'],inplace=True)
 
-remapped_daily_avg_df = cross_grid_computation(daily_avg_df,crossgrid,[geoid_source,geoid_dest],['Area',geolevel_dest+'_Area'])
+#remapped_daily_avg_df = cross_grid_computation(daily_avg_df,crossgrid,[geoid_source,geoid_dest],['Area',geolevel_dest+'_Area'])
 
 if saveout == 1:
-    remapped_daily_avg_df.to_csv(outpath+outname+'.csv')
+    daily_avg_df.to_csv(outpath+outname+'.csv')
 
 br = 1

@@ -7,7 +7,7 @@ from db_filters import filter_db
 data_root = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\datasource\\'
 #data_root = 'C:\\Users\\Lorenzo\\Documents\\Work\\Research\\2411_Environmental_RiskModel\\Set_up_I\\datasource\\'
 file_root = 'EVT_MISS_PZ_'
-outname = 'AREU_CVD_MILANO_2016to2019_2023'
+outname = 'AREU_CVD_MILANO_2016to2023'
 wrtiteout = 1
 date_begin = dt.datetime(2015,1,1)
 date_end = dt.datetime(2023,12,31)

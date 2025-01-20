@@ -6,22 +6,22 @@ import numpy as np
 import calendar
 warnings.filterwarnings("ignore")
 
-root_path = 'C:\\Users\\Lorenzo\\Documents\\Work\\Research\\2411_Environmental_RiskModel\\Set_up_I\\datasource\\'
+root_path = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\datasource\\'
 filenamepre = 'TEMP2m_'
 filenamepost = 'UTCplus1.txt'
-outfold = 'C:\\Users\\Lorenzo\\Documents\\Work\\Research\\2411_Environmental_RiskModel\\Set_up_I\\datasource\\'
+outfold = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\datasource\\'
 outprefix = 'LMB_T_'
 refgridname = 'LMB1B_MM'
 refgrid = pd.read_csv(root_path+refgridname+'.csv')
 fetchlimits = 1
 if fetchlimits == 1:
-    limdataroot = 'C:\\Users\\Lorenzo\\Documents\\Work\\Research\\2411_Environmental_RiskModel\\Set_up_I\\QGIS\\'
+    limdataroot = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\QGIS\\'
     limdataname = 'MIL1B_MM'
     lim_outprefix = 'MI_T_'
     limitsdb = pd.read_csv(limdataroot+limdataname+'.csv')
     limit_cells = list(limitsdb['MIL1B_IDcu'].unique())
 
-years = [2023]
+years = [2020,2021,2022]
 months = range(1,13)
 
 writeout = 1
@@ -84,7 +84,7 @@ for ityear in years:
             print('\n\nWORKING ON NEW SHEET: ',dtid,' (processing = ',str(((nsheet-1)/totsheets)*100),' %)')
             gotfile = 0
             try:
-                filetry_raw = pd.read_table(root_path+'T_original\\'+filenamestr,sep='\t',skiprows=offsetrows,on_bad_lines='skip')
+                filetry_raw = pd.read_table(root_path+filenamestr,sep='\t',skiprows=offsetrows)
                 gotfile = 1
             except:
                 gotfile = 0

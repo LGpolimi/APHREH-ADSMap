@@ -42,7 +42,7 @@ if conf.saveout == 1:
     formatted_df = pd.DataFrame(index=index_df.index)
     for y in conf.years:
         proc_index = index_df.copy(deep=True)
-        proc_index = proc_index.apply(lambda x: "{:.2f}".format(x))
+        proc_index = proc_index.applymap(lambda x: "{:.2f}".format(x))
         formatted_df[y] = proc_index.apply(lambda row: f"{row[str(y) + 'INDEX']} ({row[str(y) + 'CI_LOW']}|{row[str(y) + 'CI_HIGH']})", axis=1)
     formatted_df.to_csv(conf.outpath + conf.output_prefix + 'index_formatted.csv')
 

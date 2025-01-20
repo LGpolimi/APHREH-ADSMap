@@ -8,7 +8,7 @@ geolevel = 'MIL2A'
 geoid = geolevel + '_IDcu'
 saveout = 1
 basegrid = pd.read_csv(rootpath+geolevel+'.csv',low_memory=False)
-indb = pd.read_csv(rootpath+'AREU_CVD_'+geolevel+'_2016to2019_2023.csv',low_memory=False)
+indb = pd.read_csv(rootpath+'AREU_CVD_'+geolevel+'_2016to2023.csv',low_memory=False)
 
 indb['DATETIME'] = pd.to_datetime(indb['DATA'].str.strip(), format='%d%b%Y:%H:%M:%S.%f')
 indb['DATE_STR'] = indb['DATETIME'].dt.strftime('%y%m%d')
