@@ -54,7 +54,7 @@ def compute_zones_incidence(outcome,refgrid):
                 else:
                     incidence.loc[incidence['DATE'] == td,bsa] = -1
                 iti += 1
-                print('Computing lagged incidence: ' + str(iti) + ' out of ' + str(totiters),' (',str(round(iti/totiters*100,2)),'%)')
+                print('Computing lagged incidence: ' + str(iti) + ' out of ' + str(totiters),'(' + str(round(iti/totiters*100,2)),'%)')
     incidence.dropna(axis=0,inplace=True)
     incidence = incidence.loc[:, (incidence != -1).any(axis=0)].copy(deep=True)
     return incidence
@@ -105,7 +105,7 @@ def compute_incidence_baseline(incidence,non_exp_days):
                     incidence_subset = incidence.loc[incidence['DATE'].isin(window), bsa].copy(deep=True)
                     incbaseline.loc[incbaseline['DATE'] == td, bsa] = incidence_subset.mean()
                 iti += 1
-                print('Computing baseline incidence: ' + str(iti) + ' out of ' + str(totiters), ' (', str(round(iti / totiters * 100, 2)), '%)')
+                print('Computing baseline incidence: ' + str(iti) + ' out of ' + str(totiters) + ' (' + str(round(iti / totiters * 100, 2)), '%)')
     incbaseline.dropna(axis=0, inplace=True)
     incbaseline = incbaseline.loc[:, (incbaseline != -1).any(axis=0)].copy(deep=True)
     return incbaseline

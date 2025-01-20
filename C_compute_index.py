@@ -69,9 +69,14 @@ def extract_sample(deltas,weights,expdays,nonexpdays):
 
 
 
-def compute_results_arrays(deltas,weights,expdays,nonexpdays):
+def compute_results_arrays(deltas,weights,expdays,nonexpdays,y):
     nit = conf.bootstrap_iterations
-    bsas = deltas.columns.values
+    bsas = list(deltas.columns.values)
+    if 'DATE' in bsas:
+        bsas.remove('DATE')
+    if 'DATE_STR' in bsas:
+        bsas.remove('DATE_STR')
+    bsas = [int(bsa) for bsa in bsas]
     rbc_arrays = pd.DataFrame(index=bsas,columns=range(nit))
     pval_arrays = pd.DataFrame(index=bsas,columns=range(nit))
     totiters = len(bsas) * nit
@@ -92,13 +97,13 @@ def compute_results_arrays(deltas,weights,expdays,nonexpdays):
             pval_arrays.loc[bsa,outcol] = p
             iti = iti + 1
 
-            print('Performing Mann-Withney test: working on permutation ' + str(it+1) + ' out of ' +str(nit) + ' for area ' + str(bsa) + ' (' + str(bi) + 'out of ' + str(len(bsas)) + ')\t Total processing = ' + str(iti) + ' out of ' + str(totiters) + ' (' + str(round(iti / totiters * 100, 2)), '%)')
+            print('Performing Mann-Withney test for year '+str(y)+': working on permutation ' + str(it+1) + ' out of ' +str(nit) + ' for area ' + str(bsa) + ' (' + str(bi) + ' out of ' + str(len(bsas)) + ')\t Total processing = ' + str(iti) + ' out of ' + str(totiters) + ' (' + str(round(iti / totiters * 100, 2)), '%)')
 
     return rbc_arrays, pval_arrays
 
 
 
-def compute_results(rbc_arrays, pval_arrays):
+def compute_results(rbc_arrays, pval_arrays,y):
 
     results = pd.DataFrame(index=rbc_arrays.index,columns=['INDEX'])
     weights = 1 - pval_arrays
@@ -112,19 +117,23 @@ def compute_results(rbc_arrays, pval_arrays):
         weighted_average = bsa_df['WEIGHTED_RBC'].sum() / bsa_df['WEIGHT'].sum()
         results.loc[bsa,'INDEX'] = weighted_average
         iti += 1
-        print('Averaging values to compute index: ' + str(iti) + ' out of ' + str(totiters), ' (', str(round(iti / totiters * 100, 2)), '%)')
+        print('Averaging values to compute index for year '+str(y)+': ' + str(iti) + ' out of ' + str(totiters), ' (', str(round(iti / totiters * 100, 2)), '%)')
 
     return results
 
 
-def compute_index_main(deltas,weights,expdays,nonexpdays):
-    deltas.set_index('DATE',inplace=True,drop=True)
+def compute_index_main(deltas,weights,expdays,nonexpdays,y):
+    if 'DATE' in deltas.columns:
+        deltas.set_index('DATE',inplace=True,drop=True)
     weights['DATE_STR'] = weights.index
     weights = decode_datestr(weights)
     weights.set_index('DATE',inplace=True,drop=True)
     expdays = [day for day in expdays if pd.to_datetime(day) in deltas.index]
     nonexpdays = [day for day in nonexpdays if pd.to_datetime(day) in deltas.index]
-    rbc_arrays, pval_arrays = compute_results_arrays(deltas, weights, expdays, nonexpdays)
-    results = compute_results(rbc_arrays, pval_arrays)
+    rbc_arrays, pval_arrays = compute_results_arrays(deltas, weights, expdays, nonexpdays,y)
+    results = compute_results(rbc_arrays, pval_arrays,y)
+    results.index.rename(conf.geoid,inplace=True)
+    rbc_arrays.index.rename(conf.geoid, inplace=True)
+    pval_arrays.index.rename(conf.geoid, inplace=True)
 
     return results, rbc_arrays, pval_arrays

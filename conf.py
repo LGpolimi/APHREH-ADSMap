@@ -3,10 +3,13 @@ from datetime import timedelta
 
 # PARAMETERS SETTING
 
+model_version = 'V1r1'
 dspath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\datasource\\analysis_ready\\'
-outpath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\results\\'
+outpath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\results\\' + model_version + '\\'
 if not os.path.isdir(outpath):
     os.mkdir(outpath)
+output_prefix = model_version + '_' + 'output_'
+saveout = 1
 
 exposure_db_name = 'exposure_data.csv'
 outcome_db_name = 'outcome_data.csv'
@@ -18,7 +21,7 @@ source_geo_level = 'MIL1B'
 source_geoid = source_geo_level + '_IDcu'
 cross_area_field = 'Area'
 
-years = [2019,2023]
+years = [2018,2019,2023]
 months = [5,6,7,8,9]
 zones = ['ALL']
 

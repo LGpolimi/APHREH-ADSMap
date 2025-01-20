@@ -22,6 +22,7 @@ incidence_baseline = compute_incidence_baseline(incidence,non_exposed_days)
 incidence_differentials = compute_incidence_differentials(incidence,incidence_baseline)
 exposure = cross_grid_computation(exposure_grid,crossgrid,[conf.source_geoid,conf.geoid],[conf.cross_area_field,conf.area_field])
 exposure, outcome = uniform_data(exposure,outcome)
+index_df = pd.DataFrame()
 
 for y in conf.years:
     expth = exp_threshold[y]
@@ -30,7 +31,14 @@ for y in conf.years:
     nonexpdays = [ned for ned in non_exposed_days if pd.to_datetime(ned).year == y]
 
     # COMPUTATION OF VULNERABILITY INDEX
-    index_df, permutations_r, permutations_p = compute_index_main(incidence_differentials,weights,expdays,nonexpdays)
+    yearly_index_df, yearly_permutations_r, yearly_permutations_p = compute_index_main(incidence_differentials,weights,expdays,nonexpdays,y)
+    yearly_index_df.rename(columns={'INDEX': str(y)}, inplace=True)
+    index_df = pd.concat([index_df, yearly_index_df], axis=1)
 
+    if conf.saveout == 1:
+        yearly_permutations_r.to_csv(conf.outpath + conf.output_prefix + 'permutations_r_'+str(y)+'.csv')
+        yearly_permutations_p.to_csv(conf.outpath + conf.output_prefix + 'permutations_p_'+str(y)+'.csv')
+if conf.saveout == 1:
+    index_df.to_csv(conf.outpath + conf.output_prefix + 'index.csv')
 
     br = 1
