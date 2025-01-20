@@ -101,23 +101,59 @@ def compute_results_arrays(deltas,weights,expdays,nonexpdays,y):
 
     return rbc_arrays, pval_arrays
 
+def linear_int_ci(df,threshval,distcol):
+    df[distcol] = pd.to_numeric(df[distcol], errors='coerce')
+    lowest_pos = df[df[distcol] > 0].nsmallest(1, distcol).index[0]
+    lowest_neg = df[df[distcol] < 0].nlargest(1, distcol).index[0]
+    ww = df.loc[lowest_neg, 'CUM_WEIGHT']
+    ww1 = df.loc[lowest_pos, 'CUM_WEIGHT']
+    rww = df.loc[lowest_neg, 'RBC']
+    rww1 = df.loc[lowest_pos, 'RBC']
+    ci_val = rww + (((threshval-ww)/(ww1-ww))*(rww1-rww))
+    return ci_val
 
+def compute_weighted_ci(full_df):
+    df = full_df[['RBC','WEIGHT']].copy(deep=True)
+    df.sort_values(by='RBC', ascending=True, inplace=True)
+    df.reset_index(inplace=True,drop=True)
+    cumulated_weight = df['WEIGHT'].sum()
+    df['CUM_WEIGHT'] = df['WEIGHT'].cumsum()
+    weight_low = 0.025 * cumulated_weight
+    weight_high = 0.975 * cumulated_weight
+    df['DIST_from_LOW'] = df['CUM_WEIGHT'] - weight_low
+    df['DIST_from_HIGH'] = df['CUM_WEIGHT'] - weight_high
+    gotlower = 0
+    gothgiher = 0
+    if 0 in df['DIST_from_LOW'].values:
+        gotlower = 1
+        lower_ci = df.loc[df['DIST_from_LOW'] == 0,'RBC'].values[0]
+    if 0 in df['DIST_from_HIGH'].values:
+        gothgiher = 1
+        higher_ci = df.loc[df['DIST_from_HIGH'] == 0,'RBC'].values[0]
+    if gotlower == 0:
+        lower_ci = linear_int_ci(df,weight_low,'DIST_from_LOW')
+    if gothgiher == 0:
+        higher_ci = linear_int_ci(df,weight_high,'DIST_from_HIGH')
+    return lower_ci, higher_ci
 
-def compute_results(rbc_arrays, pval_arrays,y):
+def compute_results(rbc_arrays,pval_arrays,y):
 
-    results = pd.DataFrame(index=rbc_arrays.index,columns=['INDEX'])
+    results = pd.DataFrame(index=rbc_arrays.index)
     weights = 1 - pval_arrays
     iti = 0
-    totiters = len(rbc_arrays.columns)
+    totiters = len(rbc_arrays.index)
     for bsa in rbc_arrays.index:
         bsa_df = pd.DataFrame(index=rbc_arrays.columns)
         bsa_df['RBC'] = rbc_arrays.loc[bsa]
         bsa_df['WEIGHT'] = weights.loc[bsa]
         bsa_df['WEIGHTED_RBC'] = bsa_df['RBC'] * bsa_df['WEIGHT']
         weighted_average = bsa_df['WEIGHTED_RBC'].sum() / bsa_df['WEIGHT'].sum()
-        results.loc[bsa,'INDEX'] = weighted_average
+        results.loc[bsa, str(y) + 'INDEX'] = weighted_average
+        lower_ci, higher_ci = compute_weighted_ci(bsa_df)
+        results.loc[bsa, str(y) + 'CI_LOW'] = lower_ci
+        results.loc[bsa, str(y) + 'CI_HIGH'] = higher_ci
         iti += 1
-        print('Averaging values to compute index for year '+str(y)+': ' + str(iti) + ' out of ' + str(totiters), ' (', str(round(iti / totiters * 100, 2)), '%)')
+        print('Averaging values to compute index and confidence intervals for year '+str(y)+': working on area' + str(bsa) + ' ('+ str(iti) + ' out of ' + str(totiters) + ' - total processing = ' + str(round(iti / totiters * 100, 2)), '%)')
 
     return results
 

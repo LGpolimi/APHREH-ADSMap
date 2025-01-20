@@ -3,7 +3,7 @@ from datetime import timedelta
 
 # PARAMETERS SETTING
 
-model_version = 'V1r1'
+model_version = 'V1r3.1'
 dspath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\datasource\\analysis_ready\\'
 outpath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\results\\' + model_version + '\\'
 if not os.path.isdir(outpath):
@@ -21,7 +21,7 @@ source_geo_level = 'MIL1B'
 source_geoid = source_geo_level + '_IDcu'
 cross_area_field = 'Area'
 
-years = [2018,2019,2023]
+years = [2019,2023]
 months = [5,6,7,8,9]
 zones = ['ALL']
 
@@ -33,5 +33,5 @@ timelag = timedelta(days=lag)
 baseline_semiwindow = 15
 dynawindow = 1
 semiwindow_max = 60
-bootstrap_iterations = 100
-random_noise = 0.1
+bootstrap_iterations = 1000
+random_noise = 0.05

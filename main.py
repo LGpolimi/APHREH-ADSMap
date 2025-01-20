@@ -32,13 +32,18 @@ for y in conf.years:
 
     # COMPUTATION OF VULNERABILITY INDEX
     yearly_index_df, yearly_permutations_r, yearly_permutations_p = compute_index_main(incidence_differentials,weights,expdays,nonexpdays,y)
-    yearly_index_df.rename(columns={'INDEX': str(y)}, inplace=True)
     index_df = pd.concat([index_df, yearly_index_df], axis=1)
 
     if conf.saveout == 1:
         yearly_permutations_r.to_csv(conf.outpath + conf.output_prefix + 'permutations_r_'+str(y)+'.csv')
         yearly_permutations_p.to_csv(conf.outpath + conf.output_prefix + 'permutations_p_'+str(y)+'.csv')
 if conf.saveout == 1:
-    index_df.to_csv(conf.outpath + conf.output_prefix + 'index.csv')
+    index_df.to_csv(conf.outpath + conf.output_prefix + 'index_raw.csv')
+    formatted_df = pd.DataFrame(index=index_df.index)
+    for y in conf.years:
+        proc_index = index_df.copy(deep=True)
+        proc_index = proc_index.apply(lambda x: "{:.2f}".format(x))
+        formatted_df[y] = proc_index.apply(lambda row: f"{row[str(y) + 'INDEX']} ({row[str(y) + 'CI_LOW']}|{row[str(y) + 'CI_HIGH']})", axis=1)
+    formatted_df.to_csv(conf.outpath + conf.output_prefix + 'index_formatted.csv')
 
-    br = 1
+br = 1
