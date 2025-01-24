@@ -6,14 +6,14 @@ import numpy as np
 import calendar
 warnings.filterwarnings("ignore")
 
-root_path = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\datasource\\'
+root_path = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_II\\datasource\\'
 filenamepre = 'TEMP2m_'
 filenamepost = 'UTCplus1.txt'
-outfold = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\datasource\\'
+outfold = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_II\\datasource\\'
 outprefix = 'LMB_T_'
 refgridname = 'LMB1B_MM'
 refgrid = pd.read_csv(root_path+refgridname+'.csv')
-fetchlimits = 1
+fetchlimits = 0
 if fetchlimits == 1:
     limdataroot = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\QGIS\\'
     limdataname = 'MIL1B_MM'
@@ -21,7 +21,7 @@ if fetchlimits == 1:
     limitsdb = pd.read_csv(limdataroot+limdataname+'.csv')
     limit_cells = list(limitsdb['MIL1B_IDcu'].unique())
 
-years = [2020,2021,2022]
+years = [2017]
 months = range(1,13)
 
 writeout = 1
@@ -123,7 +123,7 @@ for ityear in years:
                             outdb[dtid] = flattened_db
                         if outdbrev.shape[1] == 0:
                             outdbrev = pd.DataFrame(columns=index_vector)
-                        outdbrev.loc[dtid] = flattened_db
+                        outdbrev.loc[dtid] = pd.Series(flattened_db).replace(-9999, np.nan).values
 
                     if fetchlimits == 1:
                         no_lim_outdb = pd.DataFrame({dtid: flattened_db}, index=index_vector)
@@ -139,6 +139,7 @@ for ityear in years:
                         lim_outdbrev.loc[dtid] = lim_series_flat
 
             currday = currday + dt.timedelta(hours=1)
+        outdbrev.dropna(axis=1, how='all', inplace=True)
         if writeout == 1:
             print('SAVING outputs for', outdtstr)
             outdb.index.rename('LMB1B_IDcu', inplace=True)

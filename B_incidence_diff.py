@@ -34,7 +34,7 @@ def compute_zones_incidence(outcome,refgrid):
         if y in popyears:
             popy = 'POP_'+ystr
         else:
-            popy = 'POP_' + str(min(allyears, key=lambda x: (abs(x - y), -x)))
+            popy = 'POP_' + str(min(popyears, key=lambda x: (abs(x - y), -x)))
         y_dates = [dt for dt in alldates if pd.to_datetime(dt).year == y]
         if y+1 in allyears:
             for dp in range(conf.lag+1):
@@ -133,7 +133,10 @@ def cross_grid_computation(indb,crossgridmap,uid_fields,proportion_fields):
         for row in indb.iterrows():
             newval = 0
             for key in weights_dict.keys():
-                newval = newval + row[1][key] * weights_dict[key]
+                if weights_dict[key] > 0.01:
+                    newval = newval + row[1][key] * weights_dict[key]
+                else:
+                    newval = newval + newval*0.01
             outdb.loc[row[0],id] = newval
         iti = iti + 1
         print('Computing crossed values ' + str(iti) + ' out of ' + str(totiters) + ' iterations (' + str(iti/totiters*100) + '%)')

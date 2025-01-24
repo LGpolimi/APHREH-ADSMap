@@ -3,9 +3,9 @@ from datetime import timedelta
 
 # PARAMETERS SETTING
 
-model_version = 'V1r4'
-dspath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\datasource\\analysis_ready\\'
-outpath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_I\\results\\' + model_version + '\\'
+model_version = 'V1'
+dspath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_II\\datasource\\analysis_ready\\'
+outpath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_II\\results\\' + model_version + '\\'
 if not os.path.isdir(outpath):
     os.mkdir(outpath)
 output_prefix = model_version + '_' + 'output_'
@@ -13,15 +13,15 @@ saveout = 1
 
 exposure_db_name = 'exposure_data.csv'
 outcome_db_name = 'outcome_data.csv'
-reference_geo_level = 'MIL2A'
+reference_geo_level = 'LMB3A'
 geoid = reference_geo_level + '_IDcu'
-area_field = reference_geo_level + '_Area'
+area_field = reference_geo_level + '_area'
 incidence_popmultiplier = 100000
-source_geo_level = 'MIL1B'
+source_geo_level = 'LMB1B'
 source_geoid = source_geo_level + '_IDcu'
 cross_area_field = 'Area'
 
-years = [2017,2018,2019,2020,2021,2022,2023]
+years = [2017,2018,2019,2020,2021]
 months = [5,6,7,8,9]
 zones = ['ALL']
 
@@ -33,5 +33,5 @@ timelag = timedelta(days=lag)
 baseline_semiwindow = 15
 dynawindow = 1
 semiwindow_max = 60
-bootstrap_iterations = 10000
+bootstrap_iterations = 1000
 random_noise = 0.05
