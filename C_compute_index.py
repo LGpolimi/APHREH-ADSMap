@@ -153,7 +153,7 @@ def compute_results(rbc_arrays,pval_arrays,y):
         results.loc[bsa, str(y) + 'CI_LOW'] = lower_ci
         results.loc[bsa, str(y) + 'CI_HIGH'] = higher_ci
         iti += 1
-        print('Averaging values to compute index and confidence intervals for year '+str(y)+': working on area' + str(bsa) + ' ('+ str(iti) + ' out of ' + str(totiters) + ' - total processing = ' + str(round(iti / totiters * 100, 2)), '%)')
+        print('Averaging values to compute index and confidence intervals for year '+str(y)+': working on area ' + str(bsa) + ' ('+ str(iti) + ' out of ' + str(totiters) + ' - total processing = ' + str(round(iti / totiters * 100, 2)), '%)')
 
     return results
 
