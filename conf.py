@@ -3,7 +3,7 @@ from datetime import timedelta
 
 # PARAMETERS SETTING
 
-model_version = 'V1'
+model_version = 'V2'
 dspath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_II\\datasource\\analysis_ready\\'
 outpath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_II\\results\\' + model_version + '\\'
 if not os.path.isdir(outpath):

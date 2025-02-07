@@ -5,6 +5,7 @@ from data_import import import_data, slice_data, uniform_data
 from A_expnonexp_days import define_exposure_days
 from B_incidence_diff import compute_zones_incidence, compute_incidence_baseline, compute_incidence_differentials, cross_grid_computation, compute_weights
 from C_compute_index import compute_index_main
+from D_post_process import cumulate_across_years
 
 # DATA IMPORT
 exposure_grid, outcome, refgrid, crossgrid = import_data()
@@ -37,9 +38,18 @@ for y in conf.years:
     if conf.saveout == 1:
         yearly_permutations_r.to_csv(conf.outpath + conf.output_prefix + 'permutations_r_'+str(y)+'.csv')
         yearly_permutations_p.to_csv(conf.outpath + conf.output_prefix + 'permutations_p_'+str(y)+'.csv')
+
+# POST-PROCESS INDEX ACROSS YEARS
+if len(conf.years) > 1:
+    cum_index_df, cum_index_df_formatted = cumulate_across_years(index_df)
+
+# SAVE RESULTS
 if conf.saveout == 1:
     index_df.to_csv(conf.outpath + conf.output_prefix + 'index_raw.csv')
     formatted_df = pd.DataFrame(index=index_df.index)
+    if len(conf.years) > 1:
+        cum_index_df.to_csv(conf.outpath + conf.output_prefix + 'index_cumulated_raw.csv')
+        cum_index_df_formatted.to_csv(conf.outpath + conf.output_prefix + 'index_cumulated_formatted.csv',encoding='utf-8-sig')
     for y in conf.years:
         proc_index = index_df.copy(deep=True)
         proc_index = proc_index.applymap(lambda x: "{:.2f}".format(x))
