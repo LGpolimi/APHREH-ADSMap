@@ -3,6 +3,7 @@ import numpy as np
 import conf
 
 def cumulate_across_years(index_df):
+    import conf
     suffixes = ['INDEX','CI_LOW','CI_HIGH']
     var_df = pd.DataFrame(index=index_df.index)
     var_df_formatted = pd.DataFrame(index=index_df.index)

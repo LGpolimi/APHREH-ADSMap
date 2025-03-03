@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 
 def compute_zones_incidence(outcome,refgrid):
-
+    import conf
     bsa_list = list(outcome.columns.values)
     if 'DATE' in bsa_list:
         bsa_list.remove('DATE')
@@ -19,7 +19,7 @@ def compute_zones_incidence(outcome,refgrid):
         incidence.drop(columns='AVG',inplace=True)
 
     alldates = outcome['DATE'].unique()
-    alldates.sort()
+    alldates = pd.Series(alldates).sort_values().to_numpy()
     allyears = outcome['DATE'].dt.year.unique()
     popyears = list()
     for col in refgrid.columns.values:
@@ -54,12 +54,13 @@ def compute_zones_incidence(outcome,refgrid):
                 else:
                     incidence.loc[incidence['DATE'] == td,bsa] = -1
                 iti += 1
-                print('Computing lagged incidence: ' + str(iti) + ' out of ' + str(totiters),'(' + str(round(iti/totiters*100,2)),'%)')
+                print(conf.param_string+'Computing lagged incidence: ' + str(iti) + ' out of ' + str(totiters),'(' + str(round(iti/totiters*100,2)),'%)')
     incidence.dropna(axis=0,inplace=True)
     incidence = incidence.loc[:, (incidence != -1).any(axis=0)].copy(deep=True)
     return incidence
 
 def compute_incidence_baseline(incidence,non_exp_days):
+    import conf
     bsa_list = list(incidence.columns.values)
     if 'DATE' in bsa_list:
         bsa_list.remove('DATE')
@@ -72,7 +73,7 @@ def compute_incidence_baseline(incidence,non_exp_days):
     if 'AVG' in incbaseline.columns.values:
         incbaseline.drop(columns='AVG', inplace=True)
     alldates = incidence['DATE'].unique()
-    alldates.sort()
+    alldates = pd.Series(alldates).sort_values().to_numpy()
     totiters = len(alldates) * len(bsa_list)
     iti = 0
     for y in conf.years:
@@ -105,18 +106,20 @@ def compute_incidence_baseline(incidence,non_exp_days):
                     incidence_subset = incidence.loc[incidence['DATE'].isin(window), bsa].copy(deep=True)
                     incbaseline.loc[incbaseline['DATE'] == td, bsa] = incidence_subset.mean()
                 iti += 1
-                print('Computing baseline incidence: ' + str(iti) + ' out of ' + str(totiters) + ' (' + str(round(iti / totiters * 100, 2)), '%)')
+                print(conf.param_string+'Computing baseline incidence: ' + str(iti) + ' out of ' + str(totiters) + ' (' + str(round(iti / totiters * 100, 2)), '%)')
     incbaseline.dropna(axis=0, inplace=True)
     incbaseline = incbaseline.loc[:, (incbaseline != -1).any(axis=0)].copy(deep=True)
     return incbaseline
 
 
 def compute_incidence_differentials(incidence,incidence_baseline):
+    import conf
     incidence_differentials = incidence - incidence_baseline
     incidence_differentials['DATE'] = incidence['DATE']
     return incidence_differentials
 
 def cross_grid_computation(indb,crossgridmap,uid_fields,proportion_fields):
+    import conf
     outdb = pd.DataFrame(index=indb.index)
     dest_grid_uids = crossgridmap[uid_fields[1]].unique()
     dest_grid_uids.sort()
@@ -139,10 +142,11 @@ def cross_grid_computation(indb,crossgridmap,uid_fields,proportion_fields):
                     newval = newval + newval*0.01
             outdb.loc[row[0],id] = newval
         iti = iti + 1
-        print('Computing crossed values ' + str(iti) + ' out of ' + str(totiters) + ' iterations (' + str(iti/totiters*100) + '%)')
+        print(conf.param_string+'Computing crossed values ' + str(iti) + ' out of ' + str(totiters) + ' iterations (' + str(iti/totiters*100) + '%)')
     return outdb
 
 def compute_weights(expth,exposure):
+    import conf
     expproc = exposure.copy(deep=True)
     expnodate = expproc.drop(columns='DATE').copy(deep=True)
     weights_raw = expnodate - expth
@@ -150,6 +154,8 @@ def compute_weights(expth,exposure):
     nan_cells_weights_raw = weights_raw.isna()
     nan_or_null_values = exposure.isna() | exposure.isin(conf.exposure_nullvalues)
     selected_cells = nan_cells_weights_raw | nan_or_null_values
+    if 'DATE' in selected_cells.columns.values:
+        selected_cells.drop(columns='DATE',inplace=True)
     weights_raw[selected_cells] = 0.01
 
     pos_weights = weights_raw[weights_raw >= 0]

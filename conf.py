@@ -3,35 +3,50 @@ from datetime import timedelta
 
 # PARAMETERS SETTING
 
-model_version = 'V2'
-dspath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_II\\datasource\\analysis_ready\\'
-outpath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\24 10 - V1\\Set_up_II\\results\\' + model_version + '\\'
+model_version = 'dev'
+dspath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\25 03 - V2\\Set_up_I\\datasource\\analysis_ready\\'
+respath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\25 03 - V2\\Set_up_I\\results\\'
+outpath = respath + model_version + '\\'
+if not os.path.isdir(respath):
+    os.mkdir(respath)
 if not os.path.isdir(outpath):
     os.mkdir(outpath)
-output_prefix = model_version + '_' + 'output_'
+out_prefix = ''
 saveout = 1
 
 exposure_db_name = 'exposure_data.csv'
 outcome_db_name = 'outcome_data.csv'
-reference_geo_level = 'LMB3A'
+reference_geo_level = 'MIL2A'
 geoid = reference_geo_level + '_IDcu'
-area_field = reference_geo_level + '_area'
+area_field = reference_geo_level + '_Area'
 incidence_popmultiplier = 100000
-source_geo_level = 'LMB1B'
+source_geo_level = 'MIL1B'
 source_geoid = source_geo_level + '_IDcu'
 cross_area_field = 'Area'
 
-years = [2017,2018,2019,2020,2021]
+years = [2018,2019]
 months = [5,6,7,8,9]
-zones = ['ALL']
+zones = ['ALL'] # Set to 'ALL' to analyze all BSAs
 
 exposure_nullvalues = [-1,-9999]
 outcome_nullvalues = [-1,-9999]
-exposure_percentile = 0.95
-lag = 2
-timelag = timedelta(days=lag)
 baseline_semiwindow = 15
 dynawindow = 1
 semiwindow_max = 60
 bootstrap_iterations = 1000
 random_noise = 0.05
+
+optmode_flag = 1
+if optmode_flag == 0:
+    exposure_percentile_list = [0.95]
+    lag = 2
+    timelag_list = [timedelta(days=lag)]
+if optmode_flag == 1:
+    exposure_percentile_params = [0.75,0.95,0.05]
+    lag_params = [0,7,1]
+    exposure_percentile_list = [x / 100 for x in range(int(exposure_percentile_params[0]*100), int(exposure_percentile_params[1]*100)+1, int(exposure_percentile_params[2]*100))]
+    lag = list(range(lag_params[0], lag_params[1]+1, lag_params[2]))
+    timelag_list = [timedelta(days=l) for l in lag]
+exposure_percentile = 0
+timelag = 0
+param_string = ''

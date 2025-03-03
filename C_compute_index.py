@@ -7,6 +7,7 @@ from data_import import decode_datestr
 
 
 def weighted_mannwhitneyu(exp_deltas, nonexp_deltas, exp_weights, nonexp_weights):
+    import conf
     # Combine the data and weights
     n = len(exp_deltas)
     data = np.concatenate([exp_deltas, nonexp_deltas])
@@ -44,6 +45,7 @@ def weighted_mannwhitneyu(exp_deltas, nonexp_deltas, exp_weights, nonexp_weights
     return U, p_value, r
 
 def extract_sample(deltas,weights,expdays,nonexpdays):
+    import conf
     sample_size = len(expdays)*2
     sampled_expdays = random.choices(expdays, k=sample_size)
     sampled_nonexpdays = random.choices(nonexpdays, k=sample_size)
@@ -70,6 +72,7 @@ def extract_sample(deltas,weights,expdays,nonexpdays):
 
 
 def compute_results_arrays(deltas,weights,expdays,nonexpdays,y):
+    import conf
     nit = conf.bootstrap_iterations
     bsas = list(deltas.columns.values)
     if 'DATE' in bsas:
@@ -97,11 +100,12 @@ def compute_results_arrays(deltas,weights,expdays,nonexpdays,y):
             pval_arrays.loc[bsa,outcol] = p
             iti = iti + 1
 
-            print('Performing Mann-Withney test for year '+str(y)+': working on permutation ' + str(it+1) + ' out of ' +str(nit) + ' for area ' + str(bsa) + ' (' + str(bi) + ' out of ' + str(len(bsas)) + ')\t Total processing = ' + str(iti) + ' out of ' + str(totiters) + ' (' + str(round(iti / totiters * 100, 2)), '%)')
+            print(conf.param_string+'Performing Mann-Withney test for year '+str(y)+': working on permutation ' + str(it+1) + ' out of ' +str(nit) + ' for area ' + str(bsa) + ' (' + str(bi) + ' out of ' + str(len(bsas)) + ')\t Total processing = ' + str(iti) + ' out of ' + str(totiters) + ' (' + str(round(iti / totiters * 100, 2)), '%)')
 
     return rbc_arrays, pval_arrays
 
 def linear_int_ci(df,threshval,distcol):
+    import conf
     df[distcol] = pd.to_numeric(df[distcol], errors='coerce')
     lowest_pos = df[df[distcol] > 0].nsmallest(1, distcol).index[0]
     lowest_neg = df[df[distcol] < 0].nlargest(1, distcol).index[0]
@@ -113,6 +117,7 @@ def linear_int_ci(df,threshval,distcol):
     return ci_val
 
 def compute_weighted_ci(full_df):
+    import conf
     df = full_df[['RBC','WEIGHT']].copy(deep=True)
     df.sort_values(by='RBC', ascending=True, inplace=True)
     df.reset_index(inplace=True,drop=True)
@@ -137,7 +142,7 @@ def compute_weighted_ci(full_df):
     return lower_ci, higher_ci
 
 def compute_results(rbc_arrays,pval_arrays,y):
-
+    import conf
     results = pd.DataFrame(index=rbc_arrays.index)
     weights = 1 - pval_arrays
     iti = 0
@@ -153,12 +158,13 @@ def compute_results(rbc_arrays,pval_arrays,y):
         results.loc[bsa, str(y) + 'CI_LOW'] = lower_ci
         results.loc[bsa, str(y) + 'CI_HIGH'] = higher_ci
         iti += 1
-        print('Averaging values to compute index and confidence intervals for year '+str(y)+': working on area ' + str(bsa) + ' ('+ str(iti) + ' out of ' + str(totiters) + ' - total processing = ' + str(round(iti / totiters * 100, 2)), '%)')
+        print(conf.param_string+'Averaging values to compute index and confidence intervals for year '+str(y)+': working on area ' + str(bsa) + ' ('+ str(iti) + ' out of ' + str(totiters) + ' - total processing = ' + str(round(iti / totiters * 100, 2)), '%)')
 
     return results
 
 
 def compute_index_main(deltas,weights,expdays,nonexpdays,y):
+    import conf
     if 'DATE' in deltas.columns:
         deltas.set_index('DATE',inplace=True,drop=True)
     weights['DATE_STR'] = weights.index

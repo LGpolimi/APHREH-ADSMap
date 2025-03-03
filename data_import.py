@@ -36,6 +36,7 @@ def slice_data(db,years,months,zones="foo"):
             if 'DATE' not in zones:
                 zones.append('DATE')
             db = db[db.columns.intersection(zones)].copy(deep=True)
+
     return db
 
 def uniform_data(exposure,outcome):
@@ -56,5 +57,8 @@ def uniform_data(exposure,outcome):
     outcome = outcome.loc[outcome['DATE'].isin(common_dates)].copy(deep=True)
     exposure = exposure[exposure.columns.intersection(common_zones)].copy(deep=True)
     outcome = outcome[outcome.columns.intersection(common_zones)].copy(deep=True)
+
+    common_years = pd.to_datetime(common_dates).year.unique()
+    conf.years = [year for year in conf.years if year in common_years]
 
     return exposure, outcome
