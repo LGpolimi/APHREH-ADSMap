@@ -8,7 +8,7 @@ from B_incidence_diff import compute_zones_incidence, compute_incidence_baseline
 from C_compute_index import compute_index_main
 from D_post_process import cumulate_across_years
 from E_compute_MARM import compute_marm, compute_wmarm
-from F_prepare_output import merge_relevant_info
+from F_prepare_output import merge_relevant_info, generate_chart
 
 # DATA IMPORT
 exposure_grid, outcome, refgrid, crossgrid = import_data()
@@ -22,13 +22,14 @@ cyc = 0
 totcycs = len(conf.exposure_percentile_list)*len(conf.timelag_list)
 marms = dict()
 wmarms = dict()
+wmarm_db = pd.DataFrame()
 for th in conf.exposure_percentile_list:
     for l in conf.timelag_list:
         cyc = cyc + 1
         conf.exposure_percentile = th
         conf.lag = l.days
         conf.timelag = l
-        out_prefix = 'P' + str(int(th*100)) + '_L' + str(l.days) + '//'
+        out_prefix = 'P' + str(int(th*100)) + '_L' + str(l.days) + '\\'
         conf.out_prefix = out_prefix
         if not os.path.isdir(conf.outpath + out_prefix):
             os.mkdir(conf.outpath + out_prefix)
@@ -59,25 +60,15 @@ for th in conf.exposure_percentile_list:
                 yearly_permutations_r.to_csv(conf.outpath + out_prefix + 'permutations_r_'+str(y)+'.csv')
                 yearly_permutations_p.to_csv(conf.outpath + out_prefix + 'permutations_p_'+str(y)+'.csv')
 
-            '''
-            # SAVE RESULTS PART 1
-                    if conf.saveout == 1:
-                        index_df.to_csv(conf.outpath + out_prefix + 'index_raw.csv')
-                        formatted_df = pd.DataFrame(index=index_df.index)
-                        for y in conf.years:
-                            proc_index = index_df.copy(deep=True)
-                            proc_index = proc_index.applymap(lambda x: "{:.2f}".format(x))
-                            formatted_df[y] = proc_index.apply(lambda row: f"{row[str(y) + 'INDEX']} ({row[str(y) + 'CI_LOW']}|{row[str(y) + 'CI_HIGH']})", axis=1)
-                        formatted_df.to_csv(conf.outpath + out_prefix + 'index_formatted.csv')
-            '''
 # POST-PROCESS INDEX ACROSS YEARS
         if len(conf.years) > 1:
             cum_index_df, cum_index_df_formatted = cumulate_across_years(index_df)
-            marm_db, marm = compute_marm()
+            marm_db, marm = compute_marm(index_df)
             key = f"P{int(th * 100)}_L{l.days}"
             marms[key] = marm
             wmarm = compute_wmarm(refgrid,marm_db)
             wmarms[key] = wmarm
+            wmarm_db.loc[int(th * 100),l.days] = wmarm
 
 # MERGE OUTPUT INFORMATION
             index_df, index_df_formatted, cum_index_df, cum_index_df_formatted = merge_relevant_info(marm_db,cum_index_df,cum_index_df_formatted)
@@ -111,4 +102,7 @@ if os.path.exists(source_folder):
     print(f"Replicated folder {max_wmarm_key} with max WMARM value: {max_wmarm_value}")
 else:
     print(f"Source folder {source_folder} does not exist.")
+
+# Plot the 3D chart
+generate_chart(wmarm_db)
 br = 1

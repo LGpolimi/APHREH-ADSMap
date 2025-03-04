@@ -42,7 +42,7 @@ if optmode_flag == 0:
     lag = 2
     timelag_list = [timedelta(days=lag)]
 if optmode_flag == 1:
-    exposure_percentile_params = [0.75,0.95,0.05]
+    exposure_percentile_params = [0.75,0.99,0.01]
     lag_params = [0,7,1]
     exposure_percentile_list = [x / 100 for x in range(int(exposure_percentile_params[0]*100), int(exposure_percentile_params[1]*100)+1, int(exposure_percentile_params[2]*100))]
     lag = list(range(lag_params[0], lag_params[1]+1, lag_params[2]))
