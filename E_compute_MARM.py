@@ -32,7 +32,23 @@ def compute_marm():
         stdeff_db.loc[stdeff_db[conf.geoid] == bsa, 'AVG_STDEFF'] = weighted_average
 
     # Compute MARM
-    stdeff_values = stdeff_db['AVG_STDEFF'].values
+    stdeff_values = np.abs(stdeff_db['AVG_STDEFF'].values)
     marm = stdeff_values.sum()/len(stdeff_values)
 
     return stdeff_db, marm
+
+def compute_wmarm(refgrid,stdeff_db):
+    import conf
+    wmarm_num = 0
+    wmarm_den = 0
+    for bsa in stdeff_db[conf.geoid].unique():
+        cumpop = 0
+        for y in conf.years:
+            ypop = refgrid.loc[refgrid[conf.geoid] == bsa, 'POP_'+str(y)].values[0]
+            cumpop = cumpop + ypop
+        avgpop = cumpop / len(conf.years)
+        stdeff = abs(stdeff_db.loc[stdeff_db[conf.geoid] == bsa, 'AVG_STDEFF'].values[0])
+        wmarm_num = wmarm_num + (stdeff * avgpop)
+        wmarm_den = wmarm_den + avgpop
+    wmarm = wmarm_num / wmarm_den
+    return wmarm

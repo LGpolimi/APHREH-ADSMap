@@ -3,7 +3,7 @@ from datetime import timedelta
 
 # PARAMETERS SETTING
 
-model_version = 'dev'
+model_version = 'V1'
 dspath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\25 03 - V2\\Set_up_I\\datasource\\analysis_ready\\'
 respath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\25 03 - V2\\Set_up_I\\results\\'
 outpath = respath + model_version + '\\'
@@ -24,7 +24,7 @@ source_geo_level = 'MIL1B'
 source_geoid = source_geo_level + '_IDcu'
 cross_area_field = 'Area'
 
-years = [2018,2019]
+years = [2017,2018,2019,2020,2021]
 months = [5,6,7,8,9]
 zones = ['ALL'] # Set to 'ALL' to analyze all BSAs
 
