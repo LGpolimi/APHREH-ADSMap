@@ -14,6 +14,7 @@ if not os.path.isdir(outpath):
 out_prefix = ''
 yearly_folder = outpath + 'Years\\'
 saveout = 1
+sensan_flag = 1 # Flag to launch sensitivity analysis
 
 exposure_db_name = 'exposure_data.csv'
 outcome_db_name = 'outcome_data.csv'
@@ -52,3 +53,6 @@ if optmode_flag == 1:
 exposure_percentile = 0
 timelag = 0
 param_string = ''
+
+sensitivity_minmax = [-25,+200,10] # % Change of exposed days events: min, max, step
+sens_outprefix = ''

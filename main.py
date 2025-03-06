@@ -7,8 +7,9 @@ from A_expnonexp_days import define_exposure_days
 from B_incidence_diff import compute_zones_incidence, compute_incidence_baseline, compute_incidence_differentials, cross_grid_computation, compute_weights
 from C_compute_index import compute_index_main
 from D_post_process import cumulate_across_years
-from E_compute_MARM import compute_marm, compute_wmarm
+from E_compute_MARM import compute_marm, compute_wmarm, identify_max_wmarm
 from F_prepare_output import merge_relevant_info, generate_chart
+from G_sensitivity_analysis import run_sensitivity_analysis
 
 # DATA IMPORT
 exposure_grid, outcome, refgrid, crossgrid = import_data()
@@ -88,21 +89,12 @@ for th in conf.exposure_percentile_list:
             print(f"ERROR: NO PROCESSABLE DATA FOUND FOR {out_prefix}")
 
 # INDENTIFY MOST RELEVANT RESULTS
-# Identify the combination of th and l with the max wmarm value
-max_wmarm_key = max(wmarms, key=wmarms.get)
-max_wmarm_value = wmarms[max_wmarm_key]
-# Replicate the folder with the results and rename the subfolder
-source_folder = os.path.join(conf.outpath, max_wmarm_key)
-destination_folder = os.path.join(conf.outpath, 'MAX_WMARM_' + max_wmarm_key)
-if os.path.exists(source_folder):
-    if os.path.exists(destination_folder):
-        shutil.rmtree(destination_folder)
-        print(f"Deleted existing folder {destination_folder}")
-    shutil.copytree(source_folder, destination_folder)
-    print(f"Replicated folder {max_wmarm_key} with max WMARM value: {max_wmarm_value}")
-else:
-    print(f"Source folder {source_folder} does not exist.")
+opt_params, max_wmarm = identify_max_wmarm(wmarms)
 
-# Plot the 3D chart
+# PLOT 3D CHART
 generate_chart(wmarm_db)
+
+# RUN SENSITIVITY ANALYSIS
+if conf.sensan_flag == 1 and conf.years>1:
+    run_sensitivity_analysis(opt_params, max_wmarm)
 br = 1

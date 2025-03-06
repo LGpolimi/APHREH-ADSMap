@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import os
+import shutil
 import conf
 
 def compute_marm(index_df):
@@ -56,3 +58,21 @@ def compute_wmarm(refgrid,stdeff_db):
         wmarm_den = wmarm_den + avgpop
     wmarm = wmarm_num / wmarm_den
     return wmarm
+
+def identify_max_wmarm(wmarms):
+    import conf
+    # Identify the combination of th and l with the max wmarm value
+    max_wmarm_key = max(wmarms, key=wmarms.get)
+    max_wmarm_value = wmarms[max_wmarm_key]
+    # Replicate the folder with the results and rename the subfolder
+    source_folder = os.path.join(conf.outpath, max_wmarm_key)
+    destination_folder = os.path.join(conf.outpath, 'MAX_WMARM_' + max_wmarm_key)
+    if os.path.exists(source_folder):
+        if os.path.exists(destination_folder):
+            shutil.rmtree(destination_folder)
+            print(f"Deleted existing folder {destination_folder}")
+        shutil.copytree(source_folder, destination_folder)
+        print(f"Replicated folder {max_wmarm_key} with max WMARM value: {max_wmarm_value}")
+    else:
+        print(f"Source folder {source_folder} does not exist.")
+    return max_wmarm_key, max_wmarm_value
