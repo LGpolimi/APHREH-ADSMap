@@ -26,25 +26,31 @@ def modify_data(exposed_days,incidence_base,change):
     print(f"Modifying incidence data by {change}%")
     pchange = change/100
     modified_incidence = incidence_base.copy()
-    exposed_incidence = incidence_base.loc[exposed_days].copy(deep=true)
-    cumulated_incidence = exposed_incidence.sum()
+    exposed_incidence = incidence_base.loc[incidence_base['DATE'].isin(exposed_days)].copy(deep=True)
+    exposed_incidence.drop(columns='DATE',inplace=True)
+    cumulated_incidence = exposed_incidence.sum().sum()
     cumulated_change = cumulated_incidence * (pchange)
     if change<0:
         convergence = 0
-        min_inc = 0.01
+        min_inc = 0.1
         while convergence == 0:
+            print(f"Checking convergence with min incidence = {min_inc}")
             valid_cells = exposed_incidence[exposed_incidence > min_inc]
-            cell_count = valid_cells.count().sum()
+            cell_count = valid_cells[~valid_cells.isna()].count().sum()
             cellwise_change = cumulated_change / cell_count
-            error_cells = valid_cells[valid_cells < cellwise_change]
-            if error_cells.empty:
+            error_cells = valid_cells[valid_cells < abs(cellwise_change)]
+            if error_cells.isna().all().all():
                 convergence = 1
             else:
-                min_inc = min_inc + 0.01
+                min_inc = min_inc + 0.1
     else:
         cell_count = exposed_incidence.count().sum()
         cellwise_change = cumulated_change / cell_count
-    modified_incidence.loc[exposed_days] = exposed_incidence + cellwise_change
+        valid_cells = exposed_incidence.copy(deep=True)
+    for row in valid_cells.index:
+        for col in valid_cells.columns:
+            if not pd.isna(valid_cells.loc[row,col]):
+                modified_incidence.loc[row,col] = valid_cells.loc[row,col] + cellwise_change
 
     return modified_incidence
 
@@ -54,6 +60,8 @@ def run_sensitivity_analysis(opt_params,base_wmarm):
     # SENSITIVITY DATA
     xvector = []
     yvector = []
+    marms = dict()
+    wmarms = dict()
 
     # DATA IMPORT
     exposure_grid, outcome, refgrid, crossgrid = import_data()
@@ -63,19 +71,21 @@ def run_sensitivity_analysis(opt_params,base_wmarm):
     outcome = slice_data(outcome, conf.years, conf.months, conf.zones)
 
     # SET PARAMETERS CYCLE
-    totcycs = (conf.sensitivity_minmax[1]-conf.sensitivity_minmax[0])/conf.sensitivity_minmax[2]
+    totcycs = int((conf.sensitivity_minmax[1]-conf.sensitivity_minmax[0])/conf.sensitivity_minmax[2])
     th, l = deconde_optparams(opt_params)
     timelag = dt.timedelta(days=l)
     datachange = conf.sensitivity_minmax[0] - conf.sensitivity_minmax[2]
     for cyc in range(totcycs):
-        datachange + conf.sensitivity_minmax[2]
+        datachange = datachange + conf.sensitivity_minmax[2]
         xvector.append(datachange)
-        out_prefix = 'Sensitivity_analysis\\P' + str(int(th * 100)) + '_L' + str(l.days) + '\\'
+        out_prefix = 'Sensitivity_analysis\\P' + str(int(th * 100)) + '_L' + str(l) + '\\'
         conf.sens_outprefix = out_prefix
+        if not os.path.isdir(conf.outpath+'Sensitivity_analysis\\'):
+            os.mkdir(conf.outpath+'Sensitivity_analysis\\')
         if not os.path.isdir(conf.outpath + out_prefix):
             os.mkdir(conf.outpath + out_prefix)
         conf.param_string = 'SENSITIVITY ANALYSIS: Iteration ' + str(cyc) + '/' + str(totcycs) + ' - Sensitivity change = ' + str(datachange) + ' - EXP: ' + str(
-            th * 100) + '° perc - LAG: ' + str(l.days) + '\t'
+            th * 100) + '° perc - LAG: ' + str(l) + '\t'
 
         # IDENTIFICATION OF EXPOSURE AND NON-EXPOSURE DAYS
         exp_threshold, exposed_days, non_exposed_days = define_exposure_days(exposure_grid, conf.years)
@@ -112,18 +122,16 @@ def run_sensitivity_analysis(opt_params,base_wmarm):
         if len(conf.years) > 1:
             cum_index_df, cum_index_df_formatted = cumulate_across_years(index_df)
             marm_db, marm = compute_marm(index_df)
-            key = f"P{int(th * 100)}_L{l.days}"
+            key = f"P{int(th * 100)}_L{l}"
             marms[key] = marm
             wmarm = compute_wmarm(refgrid, marm_db)
             wmarms[key] = wmarm
-            wmarm_db.loc[int(th * 100), l.days] = wmarm
+            #wmarm_db.loc[int(th * 100), l] = wmarm
 
             yvector.append(((wmarm-base_wmarm)/base_wmarm)*100)
 
             # MERGE OUTPUT INFORMATION
-            index_df, index_df_formatted, cum_index_df, cum_index_df_formatted = merge_relevant_info(marm_db,
-                                                                                                     cum_index_df,
-                                                                                                     cum_index_df_formatted)
+            index_df, index_df_formatted, cum_index_df, cum_index_df_formatted = merge_relevant_info(marm_db,cum_index_df,cum_index_df_formatted)
         # SAVE RESULTS
         if conf.saveout == 1:
             if len(conf.years) > 1:

@@ -32,6 +32,8 @@ for th in conf.exposure_percentile_list:
         conf.timelag = l
         out_prefix = 'Parametric\\P' + str(int(th*100)) + '_L' + str(l.days) + '\\'
         conf.out_prefix = out_prefix
+        if not os.path.isdir(conf.outpath + 'Parametric\\'):
+            os.mkdir(conf.outpath + 'Parametric\\')
         if not os.path.isdir(conf.outpath + out_prefix):
             os.mkdir(conf.outpath + out_prefix)
         conf.param_string = 'Iteration ' + str(cyc) + '/' + str(totcycs) + ' - EXP: ' + str(th*100) + '° perc - LAG: ' + str(l.days) + '\t'
@@ -95,6 +97,6 @@ opt_params, max_wmarm = identify_max_wmarm(wmarms)
 generate_chart(wmarm_db)
 
 # RUN SENSITIVITY ANALYSIS
-if conf.sensan_flag == 1 and conf.years>1:
+if conf.sensan_flag == 1 and len(conf.years)>1:
     run_sensitivity_analysis(opt_params, max_wmarm)
 br = 1

@@ -69,9 +69,11 @@ def generate_chart(wmarm_db):
     ax.set_ylabel('Lag Days')
     ax.set_zlabel('WMARM')
     # Set title
-    ax.set_title('3D Surface Plot of WMARM')
+    ax.set_title('3D Surface Plot of WMARM*')
     # Rotate
     ax.view_init(azim=160)
+    # Extend the x-axis limits
+    ax.set_xlim(th_values[0] - 1, th_values[-1] + 1)
     # Show plot
     plt.show()
 

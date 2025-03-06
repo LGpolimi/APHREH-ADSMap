@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 import csv
 import conf
 
@@ -36,6 +37,8 @@ def define_exposure_days(exposure,years):
         for ned in y_non_exposed_days:
             non_exposed_days.append(ned)
 
-    save_dict_to_csv(expthresholds,conf.outpath+conf.yearly_folder+'exposure_thresholds.csv')
+    if not os.path.isdir(conf.yearly_folder):
+        os.mkdir(conf.yearly_folder)
+    save_dict_to_csv(expthresholds,conf.yearly_folder+'exposure_thresholds.csv')
 
     return expthresholds, exposed_days, non_exposed_days
