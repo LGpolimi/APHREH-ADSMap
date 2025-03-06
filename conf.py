@@ -3,7 +3,7 @@ from datetime import timedelta
 
 # PARAMETERS SETTING
 
-model_version = 'V1'
+model_version = 'V2'
 dspath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\25 03 - V2\\Set_up_I\\datasource\\analysis_ready\\'
 respath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\25 03 - V2\\Set_up_I\\results\\'
 outpath = respath + model_version + '\\'
@@ -12,6 +12,7 @@ if not os.path.isdir(respath):
 if not os.path.isdir(outpath):
     os.mkdir(outpath)
 out_prefix = ''
+yearly_folder = outpath + 'Years\\'
 saveout = 1
 
 exposure_db_name = 'exposure_data.csv'
@@ -35,6 +36,7 @@ dynawindow = 1
 semiwindow_max = 60
 bootstrap_iterations = 1000
 random_noise = 0.05
+scale_exposure_threhsold = [20,50] # min likely value, max likely value
 
 optmode_flag = 1
 if optmode_flag == 0:

@@ -1,8 +1,18 @@
 import pandas as pd
 import numpy as np
+import csv
 import conf
 
+def save_dict_to_csv(dictionary, filename):
+    with open(filename, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Year', 'Threshold'])
+        for key, value in dictionary.items():
+            writer.writerow([key, value])
+
 def define_exposure_days(exposure,years):
+
+    import conf
 
     expthresholds = dict()
     exposed_days = list()
@@ -25,5 +35,7 @@ def define_exposure_days(exposure,years):
             exposed_days.append(ed)
         for ned in y_non_exposed_days:
             non_exposed_days.append(ned)
+
+    save_dict_to_csv(expthresholds,conf.outpath+conf.yearly_folder+'exposure_thresholds.csv')
 
     return expthresholds, exposed_days, non_exposed_days

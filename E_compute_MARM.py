@@ -17,6 +17,9 @@ def compute_marm(index_df):
             stdeff_db.loc[bsa,str(y)+'STDEFF'] = std_effect
 
     # Compute BSA-specific weighted average
+    thresholds = pd.read_csv(conf.outpath+conf.yearly_folder+'exposure_thresholds.csv')
+    thresholds['Scaled_Threshold'] = ((thresholds['Threshold'] - conf.scale_exposure_threhsold[0]) / (conf.scale_exposure_threhsold[1]-conf.scale_exposure_threhsold[0])) * 10
+    thresholds['Year'] = thresholds['Year'].astype(int)
     for bsa in stdeff_db.index.values:
         weights_sum = 0
         average_value = 0
@@ -24,7 +27,9 @@ def compute_marm(index_df):
             stdeff = stdeff_db.loc[bsa, str(y)+'STDEFF']
             ci_low = stdeff_db.loc[bsa, str(y)+'CI_LOW']
             ci_high = stdeff_db.loc[bsa, str(y)+'CI_HIGH']
-            w = abs(ci_high - ci_low)
+            w1 = 1 / abs(ci_high - ci_low)
+            w2 = thresholds.loc[thresholds['Year'] == y, 'Scaled_Threshold'].values[0]
+            w = w1*w2
             average_value = average_value + (stdeff * w)
             weights_sum = weights_sum + w
         weighted_average = average_value / weights_sum

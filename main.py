@@ -29,7 +29,7 @@ for th in conf.exposure_percentile_list:
         conf.exposure_percentile = th
         conf.lag = l.days
         conf.timelag = l
-        out_prefix = 'P' + str(int(th*100)) + '_L' + str(l.days) + '\\'
+        out_prefix = 'Parametric\\P' + str(int(th*100)) + '_L' + str(l.days) + '\\'
         conf.out_prefix = out_prefix
         if not os.path.isdir(conf.outpath + out_prefix):
             os.mkdir(conf.outpath + out_prefix)
