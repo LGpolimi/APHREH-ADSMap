@@ -107,13 +107,20 @@ def compute_results_arrays(deltas,weights,expdays,nonexpdays,y):
 def linear_int_ci(df,threshval,distcol):
     import conf
     df[distcol] = pd.to_numeric(df[distcol], errors='coerce')
-    lowest_pos = df[df[distcol] > 0].nsmallest(1, distcol).index[0]
-    lowest_neg = df[df[distcol] < 0].nlargest(1, distcol).index[0]
-    ww = df.loc[lowest_neg, 'CUM_WEIGHT']
-    ww1 = df.loc[lowest_pos, 'CUM_WEIGHT']
-    rww = df.loc[lowest_neg, 'RBC']
-    rww1 = df.loc[lowest_pos, 'RBC']
-    ci_val = rww + (((threshval-ww)/(ww1-ww))*(rww1-rww))
+    if df[df[distcol] > 0].shape[0]  > 0 and df[df[distcol] < 0].shape[0] > 0:
+        lowest_pos = df[df[distcol] > 0].nsmallest(1, distcol).index[0]
+        lowest_neg = df[df[distcol] < 0].nlargest(1, distcol).index[0]
+        ww = df.loc[lowest_neg, 'CUM_WEIGHT']
+        ww1 = df.loc[lowest_pos, 'CUM_WEIGHT']
+        rww = df.loc[lowest_neg, 'RBC']
+        rww1 = df.loc[lowest_pos, 'RBC']
+        ci_val = rww + (((threshval-ww)/(ww1-ww))*(rww1-rww))
+    elif df[df[distcol] > 0].shape[0]  == 0 and df[df[distcol] < 0].shape[0] > 0:
+        lowest_neg = df[df[distcol] < 0].nlargest(1, distcol).index[0]
+        ci_val = df.loc[lowest_neg, 'RBC']
+    elif df[df[distcol] > 0].shape[0]  > 0 and df[df[distcol] < 0].shape[0] == 0:
+        lowest_pos = df[df[distcol] > 0].nsmallest(1, distcol).index[0]
+        ci_val = df.loc[lowest_pos, 'RBC']
     return ci_val
 
 def compute_weighted_ci(full_df):
