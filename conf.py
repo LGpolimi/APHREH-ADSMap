@@ -3,7 +3,7 @@ from datetime import timedelta
 
 # PARAMETERS SETTING
 
-model_version = 'V3devall'
+model_version = 'V5'
 dspath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\25 03 - V2\\Set_up_I\\datasource\\analysis_ready\\'
 respath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\25 03 - V2\\Set_up_I\\results\\'
 outpath = respath + model_version + '\\'
@@ -45,8 +45,8 @@ if optmode_flag == 0:
     lag = 2
     timelag_list = [timedelta(days=lag)]
 if optmode_flag == 1:
-    exposure_percentile_params = [0.84,0.96,0.02]
-    lag_params = [1,6,1]
+    exposure_percentile_params = [0.9,0.97,0.01]
+    lag_params = [0,7,1]
     exposure_percentile_list = [x / 100 for x in range(int(exposure_percentile_params[0]*100), int(exposure_percentile_params[1]*100)+1, int(exposure_percentile_params[2]*100))]
     lag = list(range(lag_params[0], lag_params[1]+1, lag_params[2]))
     timelag_list = [timedelta(days=l) for l in lag]
@@ -54,6 +54,6 @@ exposure_percentile = 0
 timelag = 0
 param_string = ''
 
-sensitivity_minmax = [-40,+140,20] # % Change of exposed days events: min, max, step
+sensitivity_minmax = [-40,+120,20] # % Change of exposed days events: min, max, step
 sens_an_iterations = 100
 sens_outprefix = ''

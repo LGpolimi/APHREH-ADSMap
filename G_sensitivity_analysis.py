@@ -27,7 +27,7 @@ def decode_optparams(key):
 def modify_data(exposed_days,incidence_base,change):
     print(f"Modifying incidence data by {change}%")
     pchange = change/100
-    modified_incidence = incidence_base.copy()
+    modified_incidence = incidence_base.copy(deep=True)
     exposed_incidence = incidence_base.loc[incidence_base['DATE'].isin(exposed_days)].copy(deep=True)
     exposed_incidence.drop(columns='DATE',inplace=True)
     for row in exposed_incidence.index:
