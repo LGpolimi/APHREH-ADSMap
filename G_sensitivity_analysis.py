@@ -7,6 +7,7 @@ import re
 import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline
 import conf
+from conf import sens_non_exposed_days, sens_exposed_days
 from data_import import import_data, slice_data, uniform_data
 from A_expnonexp_days import define_exposure_days
 from B_incidence_diff import compute_zones_incidence, compute_incidence_baseline, compute_incidence_differentials, cross_grid_computation, compute_weights
@@ -14,6 +15,13 @@ from C_compute_index import compute_index_main
 from D_post_process import cumulate_across_years
 from E_compute_MARM import compute_marm, compute_wmarm
 from F_prepare_output import merge_relevant_info
+
+def save_variables(exp_threshold, exposed_days, non_exposed_days,incidence_base,incidence_baseline):
+    conf.sens_exp_threshold = exp_threshold
+    conf.sens_exposed_days =  exposed_days
+    conf.sens_non_exposed_days = non_exposed_days
+    conf.sens_incidence_base = incidence_base
+    conf.sens_incidence_baseline = incidence_baseline
 
 def decode_optparams(key):
     match = re.match(r'P(\d+)_L(\d+)', key)
@@ -36,40 +44,57 @@ def modify_data(exposed_days,incidence_base,change):
                 baseval = exposed_incidence.loc[row, col]
                 modified_incidence.loc[row, col] =  baseval + (baseval*pchange)
 
+    #DEBUG
+    print(f"Base cumulated incidence - exposed: {incidence_base.loc[incidence_base['DATE'].isin(exposed_days)].drop(columns=['DATE']).sum().sum()}")
+    print(f"Modified cumulated incidence - exposed: {modified_incidence.loc[modified_incidence['DATE'].isin(exposed_days)].drop(columns=['DATE']).sum().sum()}")
+    print(f"Base cumulated incidence - non exposed: {incidence_base.loc[~incidence_base['DATE'].isin(exposed_days)].drop(columns=['DATE']).sum().sum()}")
+    print(f"Modified cumulated incidence - non exposed: {modified_incidence.loc[~modified_incidence['DATE'].isin(exposed_days)].drop(columns=['DATE']).sum().sum()}")
+
+    br = 1
+
     return modified_incidence
 
-def run_sensitivity_analysis(opt_params,base_wmarm):
+def run_sensitivity_analysis(opt_params,base_wmarm,exposure_grid,outcome,exposure,refgrid,crossgrid):
     import conf
+    # IMPORT DATA STRUCTURE
+    exp_threshold = conf.sens_exp_threshold
+    exposed_days = conf.sens_exposed_days
+    non_exposed_days = conf.sens_non_exposed_days
+    incidence_base = conf.sens_incidence_base
+    incidence_baseline = conf.sens_incidence_baseline
 
     # SENSITIVITY DATA
     yvector_df = pd.DataFrame(columns=['p2.5', 'p25', 'p50', 'p75', 'p97.5'])
     marms = dict()
     wmarms = dict()
 
-    # DATA IMPORT
+    '''# DATA IMPORT
     exposure_grid, outcome, refgrid, crossgrid = import_data()
 
     # DATA SLICING
     exposure_grid = slice_data(exposure_grid, conf.years, conf.months)
-    outcome = slice_data(outcome, conf.years, conf.months, conf.zones)
+    outcome = slice_data(outcome, conf.years, conf.months, conf.zones)'''
 
     # SET PARAMETERS CYCLE
     totcycs = int((conf.sensitivity_minmax[1]-conf.sensitivity_minmax[0])/conf.sensitivity_minmax[2])+1
     totiters = totcycs * conf.sens_an_iterations
     th, l = decode_optparams(opt_params)
+    conf.exposure_percentile = th
+    conf.lag = l
     timelag = dt.timedelta(days=l)
+    conf.param_string = 'INIT SENSITIVITY ANALYSIS ON EXP: ' + str(th*100) + '° perc - LAG: ' + str(l)
     datachange = conf.sensitivity_minmax[0] - conf.sensitivity_minmax[2]
     if not os.path.isdir(conf.outpath + 'Sensitivity_analysis\\'):
         os.mkdir(conf.outpath + 'Sensitivity_analysis\\')
 
-    # IDENTIFICATION OF EXPOSURE AND NON-EXPOSURE DAYS
+    '''# IDENTIFICATION OF EXPOSURE AND NON-EXPOSURE DAYS
     exp_threshold, exposed_days, non_exposed_days = define_exposure_days(exposure_grid, conf.years)
     # COMPUTATION OF BASE INCIDENCE
     incidence_base = compute_zones_incidence(outcome, refgrid)
-    incidence_baseline = compute_incidence_baseline(incidence_base, non_exposed_days)
-    exposure = cross_grid_computation(exposure_grid, crossgrid, [conf.source_geoid, conf.geoid],
+    incidence_baseline = compute_incidence_baseline(incidence_base, non_exposed_days)'''
+    '''exposure = cross_grid_computation(exposure_grid, crossgrid, [conf.source_geoid, conf.geoid],
                                       [conf.cross_area_field, conf.area_field])
-    exposure, outcome = uniform_data(exposure, outcome)
+    exposure, outcome = uniform_data(exposure, outcome)'''
 
     # RUN CYCLES
     xvector = []
@@ -78,22 +103,19 @@ def run_sensitivity_analysis(opt_params,base_wmarm):
         datachange = datachange + conf.sensitivity_minmax[2]
         yvector = []
         xvector.append(datachange)
+        # MODIFY DATA
+        incidence = modify_data(exposed_days, incidence_base, datachange)
+        # COMPUTATION OF INCIDENCE DIFFERENTIALS
+        incidence_differentials = compute_incidence_differentials(incidence, incidence_baseline)
         for it in range(conf.sens_an_iterations):
             out_prefix = 'Sensitivity_analysis\\P' + str(int(th * 100)) + '_L' + str(l) + '_'+str(datachange)+'\\'
             conf.sens_outprefix = out_prefix
-            if not os.path.isdir(conf.outpath + out_prefix):
-                os.mkdir(conf.outpath + out_prefix)
+            '''if not os.path.isdir(conf.outpath + out_prefix):
+                os.mkdir(conf.outpath + out_prefix)'''
             conf.param_string = 'SENSITIVITY ANALYSIS: Iteration ' + str(it+(cyc*conf.sens_an_iterations)) + '/' + str(totiters) + ' - Sensitivity change = ' + str(datachange) + ' - EXP: ' + str(
                 th * 100) + '° perc - LAG: ' + str(l) + '\t'
 
-            # MODIFY DATA
-            incidence = modify_data(exposed_days, incidence_base, datachange)
-
-            # COMPUTATION OF INCIDENCE DIFFERENTIALS
-            incidence_differentials = compute_incidence_differentials(incidence, incidence_baseline)
-
             index_df = pd.DataFrame()
-
             for y in conf.years:
                 expth = exp_threshold[y]
                 weights = compute_weights(expth, exposure)
@@ -104,10 +126,6 @@ def run_sensitivity_analysis(opt_params,base_wmarm):
                 yearly_index_df, yearly_permutations_r, yearly_permutations_p = compute_index_main(
                     incidence_differentials, weights, expdays, nonexpdays, y)
                 index_df = pd.concat([index_df, yearly_index_df], axis=1)
-
-                '''if conf.saveout == 1:
-                    yearly_permutations_r.to_csv(conf.outpath + out_prefix + 'permutations_r_' + str(y) + '.csv')
-                    yearly_permutations_p.to_csv(conf.outpath + out_prefix + 'permutations_p_' + str(y) + '.csv')'''
 
         # POST-PROCESS INDEX ACROSS YEARS
             cum_index_df, cum_index_df_formatted = cumulate_across_years(index_df)

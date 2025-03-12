@@ -1,9 +1,10 @@
 import os
+import pandas as pd
 from datetime import timedelta
 
 # PARAMETERS SETTING
 
-model_version = 'V5'
+model_version = 'V7'
 dspath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\25 03 - V2\\Set_up_I\\datasource\\analysis_ready\\'
 respath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\25 03 - V2\\Set_up_I\\results\\'
 outpath = respath + model_version + '\\'
@@ -26,7 +27,7 @@ source_geo_level = 'MIL1B'
 source_geoid = source_geo_level + '_IDcu'
 cross_area_field = 'Area'
 
-years = [2017,2018,2019,2020,2021]
+years = [2017,2018,2019]
 months = [5,6,7,8,9]
 zones = ['ALL'] # Set to 'ALL' to analyze all BSAs
 
@@ -45,7 +46,7 @@ if optmode_flag == 0:
     lag = 2
     timelag_list = [timedelta(days=lag)]
 if optmode_flag == 1:
-    exposure_percentile_params = [0.9,0.97,0.01]
+    exposure_percentile_params = [0.8,0.99,0.01]
     lag_params = [0,7,1]
     exposure_percentile_list = [x / 100 for x in range(int(exposure_percentile_params[0]*100), int(exposure_percentile_params[1]*100)+1, int(exposure_percentile_params[2]*100))]
     lag = list(range(lag_params[0], lag_params[1]+1, lag_params[2]))
@@ -54,6 +55,12 @@ exposure_percentile = 0
 timelag = 0
 param_string = ''
 
-sensitivity_minmax = [-40,+120,20] # % Change of exposed days events: min, max, step
+sensitivity_minmax = [-40,+100,20] # % Change of exposed days events: min, max, step
 sens_an_iterations = 100
+
 sens_outprefix = ''
+sens_exp_threshold = dict()
+sens_exposed_days =[]
+sens_non_exposed_days = []
+sens_incidence_base = pd.DataFrame()
+sens_incidence_baseline = pd.DataFrame()

@@ -9,7 +9,7 @@ from C_compute_index import compute_index_main
 from D_post_process import cumulate_across_years
 from E_compute_MARM import compute_marm, compute_wmarm, identify_max_wmarm
 from F_prepare_output import merge_relevant_info, generate_chart
-from G_sensitivity_analysis import run_sensitivity_analysis
+from G_sensitivity_analysis import run_sensitivity_analysis, save_variables
 
 # DATA IMPORT
 exposure_grid, outcome, refgrid, crossgrid = import_data()
@@ -24,6 +24,7 @@ totcycs = len(conf.exposure_percentile_list)*len(conf.timelag_list)
 marms = dict()
 wmarms = dict()
 wmarm_db = pd.DataFrame()
+max_wmarm = 0
 for th in conf.exposure_percentile_list:
     for l in conf.timelag_list:
         cyc = cyc + 1
@@ -72,6 +73,9 @@ for th in conf.exposure_percentile_list:
             wmarm = compute_wmarm(refgrid,marm_db)
             wmarms[key] = wmarm
             wmarm_db.loc[int(th * 100),l.days] = wmarm
+            if wmarm > max_wmarm:
+                max_wmarm = wmarm
+                save_variables(exp_threshold, exposed_days, non_exposed_days,incidence,incidence_baseline)
 
 # MERGE OUTPUT INFORMATION
             index_df, index_df_formatted, cum_index_df, cum_index_df_formatted = merge_relevant_info(marm_db,cum_index_df,cum_index_df_formatted)
@@ -98,5 +102,5 @@ generate_chart(wmarm_db)
 
 # RUN SENSITIVITY ANALYSIS
 if conf.sensan_flag == 1 and len(conf.years)>1:
-    run_sensitivity_analysis(opt_params, max_wmarm)
+    run_sensitivity_analysis(opt_params, max_wmarm,exposure_grid,outcome,exposure,refgrid,crossgrid)
 br = 1
