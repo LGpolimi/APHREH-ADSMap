@@ -142,7 +142,7 @@ def cross_grid_computation(indb,crossgridmap,uid_fields,proportion_fields):
                     newval = newval + newval*0.01
             outdb.loc[row[0],id] = newval
         iti = iti + 1
-        print(conf.param_string+'Computing crossed values ' + str(iti) + ' out of ' + str(totiters) + ' iterations (' + str(iti/totiters*100) + '%)')
+        print(conf.param_string+'Computing crossed exposure values ' + str(iti) + ' out of ' + str(totiters) + ' iterations (' + str(iti/totiters*100) + '%)')
     return outdb
 
 def compute_weights(expth,exposure):

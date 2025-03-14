@@ -50,7 +50,26 @@ def compute_wmarm(refgrid,stdeff_db):
     for bsa in stdeff_db.index.values:
         cumpop = 0
         for y in conf.years:
-            ypop = refgrid.loc[refgrid[conf.geoid] == bsa, 'POP_'+str(y)].values[0]
+            if 'POP_'+str(y) in refgrid.columns:
+                ypop = refgrid.loc[refgrid[conf.geoid] == bsa, 'POP_'+str(y)].values[0]
+            else:
+                min_y_dist = 9999
+                closest_y = 0
+                for c in refgrid.columns:
+                    if 'POP_' in c:
+                        cy = int(c.split('_')[1])
+                        ydist = abs(y - cy)
+                        saveflag = 0
+                        if ydist < min_y_dist:
+                            saveflag = 1
+                        elif ydist == min_y_dist:
+                            if cy > closest_y:
+                                saveflag = 1
+                        if saveflag == 1:
+                            min_y_dist = ydist
+                            closest_y = cy
+                            closest_col = 'POP_' + str(cy)
+                ypop = refgrid.loc[refgrid[conf.geoid] == bsa, closest_col].values[0]
             cumpop = cumpop + ypop
         avgpop = cumpop / len(conf.years)
         stdeff = abs(stdeff_db.loc[bsa, 'AVG_STDEFF'])

@@ -17,6 +17,8 @@ exposure_grid, outcome, refgrid, crossgrid = import_data()
 # DATA SLICING
 exposure_grid = slice_data(exposure_grid,conf.years,conf.months)
 outcome = slice_data(outcome,conf.years,conf.months,conf.zones)
+exposure = cross_grid_computation(exposure_grid,crossgrid,[conf.source_geoid,conf.geoid],[conf.cross_area_field,conf.area_field])
+exposure, outcome = uniform_data(exposure,outcome)
 
 # SET PARAMETERS CYCLE
 cyc = 0
@@ -25,6 +27,7 @@ marms = dict()
 wmarms = dict()
 wmarm_db = pd.DataFrame()
 max_wmarm = 0
+
 for th in conf.exposure_percentile_list:
     for l in conf.timelag_list:
         cyc = cyc + 1
@@ -46,8 +49,6 @@ for th in conf.exposure_percentile_list:
         incidence = compute_zones_incidence(outcome,refgrid)
         incidence_baseline = compute_incidence_baseline(incidence,non_exposed_days)
         incidence_differentials = compute_incidence_differentials(incidence,incidence_baseline)
-        exposure = cross_grid_computation(exposure_grid,crossgrid,[conf.source_geoid,conf.geoid],[conf.cross_area_field,conf.area_field])
-        exposure, outcome = uniform_data(exposure,outcome)
         index_df = pd.DataFrame()
 
         for y in conf.years:
