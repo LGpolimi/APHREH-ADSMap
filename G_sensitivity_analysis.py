@@ -13,24 +13,9 @@ from A_expnonexp_days import define_exposure_days
 from B_incidence_diff import compute_zones_incidence, compute_incidence_baseline, compute_incidence_differentials, cross_grid_computation, compute_weights
 from C_compute_index import compute_index_main
 from D_post_process import cumulate_across_years
-from E_compute_MARM import compute_marm, compute_wmarm
+from E_compute_MARM import compute_marm, compute_wmarm, decode_params, save_variables
 from F_prepare_output import merge_relevant_info
 
-def save_variables(exp_threshold, exposed_days, non_exposed_days,incidence_base,incidence_baseline):
-    conf.sens_exp_threshold = exp_threshold
-    conf.sens_exposed_days =  exposed_days
-    conf.sens_non_exposed_days = non_exposed_days
-    conf.sens_incidence_base = incidence_base
-    conf.sens_incidence_baseline = incidence_baseline
-
-def decode_optparams(key):
-    match = re.match(r'P(\d+)_L(\d+)', key)
-    if match:
-        th = int(match.group(1)) / 100
-        l = int(match.group(2))
-        return th, l
-    else:
-        raise ValueError("Invalid key format")
 
 def modify_data(exposed_days,incidence_base,change):
     print(f"Modifying incidence data by {change}%")
@@ -78,7 +63,7 @@ def run_sensitivity_analysis(opt_params,base_wmarm,exposure_grid,outcome,exposur
     # SET PARAMETERS CYCLE
     totcycs = int((conf.sensitivity_minmax[1]-conf.sensitivity_minmax[0])/conf.sensitivity_minmax[2])+1
     totiters = totcycs * conf.sens_an_iterations
-    th, l = decode_optparams(opt_params)
+    th, l = decode_params(opt_params)
     conf.exposure_percentile = th
     conf.lag = l
     timelag = dt.timedelta(days=l)

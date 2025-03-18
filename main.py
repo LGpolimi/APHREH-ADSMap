@@ -7,9 +7,9 @@ from A_expnonexp_days import define_exposure_days
 from B_incidence_diff import compute_zones_incidence, compute_incidence_baseline, compute_incidence_differentials, cross_grid_computation, compute_weights
 from C_compute_index import compute_index_main
 from D_post_process import cumulate_across_years
-from E_compute_MARM import compute_marm, compute_wmarm, identify_max_wmarm
+from E_compute_MARM import compute_marm, compute_wmarm, identify_max_wmarm, run_uncertainty_analysis, save_variables
 from F_prepare_output import merge_relevant_info, generate_chart
-from G_sensitivity_analysis import run_sensitivity_analysis, save_variables
+from G_sensitivity_analysis import run_sensitivity_analysis
 
 # DATA IMPORT
 exposure_grid, outcome, refgrid, crossgrid = import_data()
@@ -97,6 +97,13 @@ for th in conf.exposure_percentile_list:
 
 # INDENTIFY MOST RELEVANT RESULTS
 opt_params, max_wmarm = identify_max_wmarm(wmarms)
+
+# RUN UNCERTAINTY ANALYSIS
+if conf.uncertainty_flag == 1:
+    wmarms, wmarm_db, max_wmarm = run_uncertainty_analysis(wmarms,wmarm_db,max_wmarm,exposure_grid,outcome,exposure,refgrid,crossgrid)
+
+    # INDENTIFY MOST RELEVANT RESULTS
+    opt_params, max_wmarm = identify_max_wmarm(wmarms)
 
 # PLOT 3D CHART
 generate_chart(wmarm_db)
