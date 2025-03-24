@@ -61,11 +61,11 @@ def extract_sample(deltas,weights,expdays,nonexpdays):
     sampled_deltas_nonexp += sampled_deltas_nonexp * noise
     sampled_deltas_nonexp.reset_index(inplace=True,drop=True)
     sampled_weights_nonexp.reset_index(inplace=True,drop=True)
-    # DEBUGGING
+    '''# DEBUGGING
     if sampled_deltas_nonexp[sampled_deltas_nonexp.isna().any(axis=1)].shape[0] > 0:
         print('Error: NaN values in sampled_deltas_nonexp')
     if sampled_deltas_exp[sampled_deltas_exp.isna().any(axis=1)].shape[0] > 0:
-        print('Error: NaN values in sampled_deltas_exp')
+        print('Error: NaN values in sampled_deltas_exp')'''
 
     return sampled_deltas_exp, sampled_deltas_nonexp, sampled_weights_exp, sampled_weights_nonexp
 
@@ -177,9 +177,9 @@ def compute_index_main(deltas,weights,expdays,nonexpdays,y):
     weights['DATE_STR'] = weights.index
     weights = decode_datestr(weights)
     weights.set_index('DATE',inplace=True,drop=True)
-    expdays = [day for day in expdays if pd.to_datetime(day) in deltas.index]
-    nonexpdays = [day for day in nonexpdays if pd.to_datetime(day) in deltas.index]
-    rbc_arrays, pval_arrays = compute_results_arrays(deltas, weights, expdays, nonexpdays,y)
+    it_expdays = [day for day in expdays if pd.to_datetime(day) in deltas.index]
+    it_nonexpdays = [day for day in nonexpdays if pd.to_datetime(day) in deltas.index]
+    rbc_arrays, pval_arrays = compute_results_arrays(deltas, weights, it_expdays, it_nonexpdays,y)
     results = compute_results(rbc_arrays, pval_arrays,y)
     results.index.rename(conf.geoid,inplace=True)
     rbc_arrays.index.rename(conf.geoid, inplace=True)

@@ -39,14 +39,14 @@ def modify_data(exposed_days,incidence_base,change):
 
     return modified_incidence
 
-def run_sensitivity_analysis(opt_params,base_wmarm,exposure_grid,outcome,exposure,refgrid,crossgrid):
+def run_sensitivity_analysis(opt_params,base_wmarm,param_ds,setup_data):
     import conf
     # IMPORT DATA STRUCTURE
-    exp_threshold = conf.sens_exp_threshold
-    exposed_days = conf.sens_exposed_days
-    non_exposed_days = conf.sens_non_exposed_days
-    incidence_base = conf.sens_incidence_base
-    incidence_baseline = conf.sens_incidence_baseline
+    exp_threshold = param_ds.exp_threshold
+    exposed_days = param_ds.exposed_days
+    non_exposed_days = param_ds.non_exposed_days
+    incidence_base = param_ds.incidence
+    incidence_baseline = param_ds.incidence_baseline
 
     # SENSITIVITY DATA
     yvector_df = pd.DataFrame(columns=['p2.5', 'p25', 'p50', 'p75', 'p97.5'])
@@ -67,19 +67,12 @@ def run_sensitivity_analysis(opt_params,base_wmarm,exposure_grid,outcome,exposur
     conf.exposure_percentile = th
     conf.lag = l
     timelag = dt.timedelta(days=l)
-    conf.param_string = 'INIT SENSITIVITY ANALYSIS ON EXP: ' + str(th*100) + '° perc - LAG: ' + str(l)
+    conf.process_string = 'INIT SENSITIVITY ANALYSIS ON EXP: '
+    conf.param_string =  conf.process_string + str(th*100) + '° perc - LAG: ' + str(l)
     datachange = conf.sensitivity_minmax[0] - conf.sensitivity_minmax[2]
     if not os.path.isdir(conf.outpath + 'Sensitivity_analysis\\'):
         os.mkdir(conf.outpath + 'Sensitivity_analysis\\')
 
-    '''# IDENTIFICATION OF EXPOSURE AND NON-EXPOSURE DAYS
-    exp_threshold, exposed_days, non_exposed_days = define_exposure_days(exposure_grid, conf.years)
-    # COMPUTATION OF BASE INCIDENCE
-    incidence_base = compute_zones_incidence(outcome, refgrid)
-    incidence_baseline = compute_incidence_baseline(incidence_base, non_exposed_days)'''
-    '''exposure = cross_grid_computation(exposure_grid, crossgrid, [conf.source_geoid, conf.geoid],
-                                      [conf.cross_area_field, conf.area_field])
-    exposure, outcome = uniform_data(exposure, outcome)'''
 
     # RUN CYCLES
     xvector = []
@@ -95,17 +88,15 @@ def run_sensitivity_analysis(opt_params,base_wmarm,exposure_grid,outcome,exposur
         for it in range(conf.sens_an_iterations):
             out_prefix = 'Sensitivity_analysis\\P' + str(int(th * 100)) + '_L' + str(l) + '_'+str(datachange)+'\\'
             conf.sens_outprefix = out_prefix
-            '''if not os.path.isdir(conf.outpath + out_prefix):
-                os.mkdir(conf.outpath + out_prefix)'''
             conf.param_string = 'SENSITIVITY ANALYSIS: Iteration ' + str(it+(cyc*conf.sens_an_iterations)) + '/' + str(totiters) + ' - Sensitivity change = ' + str(datachange) + ' - EXP: ' + str(
                 th * 100) + '° perc - LAG: ' + str(l) + '\t'
-
             index_df = pd.DataFrame()
             for y in conf.years:
-                expth = exp_threshold[y]
-                weights = compute_weights(expth, exposure)
-                expdays = [ed for ed in exposed_days if pd.to_datetime(ed).year == y]
-                nonexpdays = [ned for ned in non_exposed_days if pd.to_datetime(ned).year == y]
+                for yi in param_ds.yearly_ds:
+                    if yi.year == y:
+                        weights = yi.weights
+                        expdays = yi.expdays
+                        nonexpdays = yi.nonexpdays
 
                 # COMPUTATION OF VULNERABILITY INDEX
                 yearly_index_df, yearly_permutations_r, yearly_permutations_p = compute_index_main(
@@ -117,27 +108,11 @@ def run_sensitivity_analysis(opt_params,base_wmarm,exposure_grid,outcome,exposur
             marm_db, marm = compute_marm(index_df)
             key = f"P{int(th * 100)}_L{l}"
             marms[key] = marm
-            wmarm = compute_wmarm(refgrid, marm_db)
+            wmarm = compute_wmarm(setup_data.refgrid, marm_db)
             wmarms[key] = wmarm
-            #wmarm_db.loc[int(th * 100), l] = wmarm
 
             yvector.append(((wmarm-base_wmarm)/base_wmarm)*100)
 
-            '''# MERGE OUTPUT INFORMATION
-            index_df, index_df_formatted, cum_index_df, cum_index_df_formatted = merge_relevant_info(marm_db,cum_index_df,cum_index_df_formatted)
-            # SAVE RESULTS
-            if conf.saveout == 1:
-                index_df.to_csv(conf.outpath + out_prefix + 'index_raw.csv')
-                index_df_formatted.to_csv(conf.outpath + out_prefix + 'index_formatted.csv')
-                cum_index_df.to_csv(conf.outpath + out_prefix + 'index_cumulated_raw.csv')
-                cum_index_df_formatted.to_csv(conf.outpath + out_prefix + 'index_cumulated_formatted.csv',
-                                              encoding='utf-8-sig')
-                with open(conf.outpath + out_prefix + 'marm_value.txt', 'w') as file:
-                    file.write(f'MARM: {marm}')
-                with open(conf.outpath + out_prefix + 'wmarm_value.txt', 'w') as file:
-                    file.write(f'WMARM: {wmarm}')
-            else:
-                print(f"ERROR: NO PROCESSABLE DATA FOUND FOR {out_prefix}")'''
         yp2 = np.quantile(yvector,0.025)
         yp25 = np.quantile(yvector,0.25)
         yp50 = np.quantile(yvector,0.5)
@@ -147,7 +122,6 @@ def run_sensitivity_analysis(opt_params,base_wmarm,exposure_grid,outcome,exposur
 
     # PLOT CHART 1
     plt.figure(figsize=(10, 6))
-    #plt.plot(xvector, yvector, marker='o', linestyle='-', color='b')
     plt.plot(xvector, yvector_df['p2.5'], marker='o', linestyle='-', color='red', label='2.5%')
     plt.plot(xvector, yvector_df['p25'], marker='o', linestyle='-', color='lightblue', label='25%')
     plt.plot(xvector, yvector_df['p50'], marker='o', linestyle='-', color='darkgreen', label='50%')

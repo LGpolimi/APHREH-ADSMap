@@ -117,8 +117,9 @@ def identify_max_wmarm(wmarms):
         print(f"Source folder {source_folder} does not exist.")
     return max_wmarm_key, max_wmarm_value
 
-def run_uncertainty_analysis(wmarms,wmarm_db,max_wmarm,exposure_grid,outcome,exposure,refgrid,crossgrid):
+def run_uncertainty_analysis(wmarms,wmarm_db,max_wmarm,ds,refgrid):
     import conf
+    conf.process_string = 'UNCERTAINTY ANALYSIS ON: '
     totiters = conf.uncertainty_nvalues * conf.uncertainty_iterations
     iti = 0
     uncertainty_db = pd.DataFrame(columns=['Original_WMARM', 'Averaged_WMARM', 'STDev','Min','Max','Values'])
@@ -132,26 +133,35 @@ def run_uncertainty_analysis(wmarms,wmarm_db,max_wmarm,exposure_grid,outcome,exp
     for key in wmarms.keys():
         if wmarms[key] in values_to_check:
             assess_values[key] = wmarms[key]
+    ki = 0
     for key in assess_values.keys():
+        ki = ki +1
         uncertainty_db.loc[key, 'Original_WMARM'] = assess_values[key]
         th, l = decode_params(key)
         conf.exposure_percentile = th
         conf.lag = l
-        conf.param_string = 'UNCERTAINTY ANALYSIS ON: ' + str(th * 100) + '° perc - LAG: ' + str(l) + ' '
-        exp_threshold, exposed_days, non_exposed_days = define_exposure_days(exposure_grid, conf.years)
-        incidence = compute_zones_incidence(outcome, refgrid)
-        incidence_baseline = compute_incidence_baseline(incidence, non_exposed_days)
-        incidence_differentials = compute_incidence_differentials(incidence, incidence_baseline)
+        conf.param_string = conf.process_string + str(th * 100) + '° perc - LAG: ' + str(l) + ' (' + str(ki) + '/' + str(N) + ') '
+        for instance in ds:
+            if instance.th == th and instance.lag == l:
+                unc_struct = instance
+                exp_threshold = unc_struct.exp_threshold
+                exposed_days = unc_struct.exposed_days
+                non_exposed_days = unc_struct.non_exposed_days
+                incidence = unc_struct.incidence
+                incidence_baseline = unc_struct.incidence_baseline
+                incidence_differentials = unc_struct.incidence_differentials
         wmarms_vector = []
         for it in range(conf.uncertainty_iterations):
             iti = iti + 1
-            print(conf.param_string + ' - Iteration ' + str(iti) + '/' + str(totiters) + ' - processing = ' + str(iti/totiters*100) + '%')
+            conf.param_string = conf.process_string + ' - Iteration ' + str(iti) + '/' + str(totiters) + ' - processing = ' + str(iti/totiters*100) + '%\t'
             index_df = pd.DataFrame()
             for y in conf.years:
-                expth = exp_threshold[y]
-                weights = compute_weights(expth, exposure)
-                expdays = [ed for ed in exposed_days if pd.to_datetime(ed).year == y]
-                nonexpdays = [ned for ned in non_exposed_days if pd.to_datetime(ned).year == y]
+                #expth = exp_threshold[y]
+                for yi in unc_struct.yearly_ds:
+                    if yi.year == y:
+                        weights = yi.weights
+                        expdays = yi.expdays
+                        nonexpdays = yi.nonexpdays
                 # COMPUTATION OF VULNERABILITY INDEX
                 yearly_index_df, yearly_permutations_r, yearly_permutations_p = compute_index_main(
                     incidence_differentials, weights, expdays, nonexpdays, y)
@@ -161,12 +171,13 @@ def run_uncertainty_analysis(wmarms,wmarm_db,max_wmarm,exposure_grid,outcome,exp
             key = f"P{int(th * 100)}_L{l}"
             wmarm = compute_wmarm(refgrid, marm_db)
             wmarms_vector.append(wmarm)
-        averaged_wmarm = np.mean(wmarms_vector)
+        averaged_wmarm = np.mean(np.asarray(wmarms_vector))
         wmarm_db.loc[th * 100, l] = averaged_wmarm
         wmarms[key] = averaged_wmarm
-        if averaged_wmarm > max_wmarm:
+        if averaged_wmarm >= max_wmarm:
             max_wmarm = averaged_wmarm
-            save_variables(exp_threshold, exposed_days, non_exposed_days, incidence, incidence_baseline)
+            #save_variables(exp_threshold, exposed_days, non_exposed_days, incidence, incidence_baseline)
+            conf.max_wmarm_ds = unc_struct
         uncertainty_db.loc[key, 'Averaged_WMARM'] = averaged_wmarm
         uncertainty_db.loc[key, 'STDev'] = np.std(wmarms_vector)
         uncertainty_db.loc[key, 'Min'] = min(wmarms_vector)

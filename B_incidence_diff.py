@@ -54,7 +54,7 @@ def compute_zones_incidence(outcome,refgrid):
                 else:
                     incidence.loc[incidence['DATE'] == td,bsa] = -1
                 iti += 1
-                print(conf.param_string+'Computing lagged incidence: ' + str(iti) + ' out of ' + str(totiters),'(' + str(round(iti/totiters*100,2)),'%)')
+                print(conf.param_string+' Computing lagged incidence: ' + str(iti) + ' out of ' + str(totiters),'(' + str(round(iti/totiters*100,2)),'%)')
     incidence.dropna(axis=0,inplace=True)
     incidence = incidence.loc[:, (incidence != -1).any(axis=0)].copy(deep=True)
     return incidence
@@ -113,7 +113,6 @@ def compute_incidence_baseline(incidence,non_exp_days):
 
 
 def compute_incidence_differentials(incidence,incidence_baseline):
-    import conf
     incidence_differentials = incidence - incidence_baseline
     incidence_differentials['DATE'] = incidence['DATE']
     return incidence_differentials
