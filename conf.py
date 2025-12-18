@@ -4,9 +4,9 @@ from datetime import timedelta
 
 # PATHS
 
-model_version = 'PUB1'
-dspath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\25 03 - V2\\Set_up_III\\datasource\\analysis_ready\\'
-respath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\25 03 - V2\\Set_up_III\\results\\'
+model_version = '' #SET MODEL VERSION LABEL
+dspath = '' #SET DATASOURCE PATH
+respath = '' #SET RESULTS PATH
 outpath = respath + model_version + '\\'
 if not os.path.isdir(respath):
     os.mkdir(respath)
@@ -26,20 +26,20 @@ uncertainty_flag = 1 # Flag to launch uncertainty analysis on highest values
 
 exposure_db_name = 'exposure_data.csv'
 outcome_db_name = 'outcome_data.csv'
-reference_geo_level = 'LMB3A'
-geoid = reference_geo_level + '_IDcu'
-area_field = reference_geo_level + '_Area'
+reference_geo_level = '' #SET UID LABEL OF BSAs
+geoid = reference_geo_level + '' #SET SUFFIX OF UID LABEL OF BSAs
+area_field = reference_geo_level + '' #SET SUFFIX OF BSAs AREA FIELD
 incidence_popmultiplier = 100000
-source_geo_level = 'LMB1D'
-source_geoid = source_geo_level + '_IDcu'
+source_geo_level = '' #SET UID OF GRID CELLS
+source_geoid = source_geo_level + '' #SET SUFFIX OF UID LABEL OF GRID CELLS
 cross_area_field = 'Area'
 
 # PARAMETERS
 
 exposure_nullvalues = [-1,-9999]
 outcome_nullvalues = [-1,-9999]
-years = [2015,2016,2017,2018,2019]
-months = [1,2,3,4,5,6,7,8,9,10,11,12]
+years = [2015,2016,2017,2018,2019] #SET YEARS TO ANALYZE
+months = [1,2,3,4,5,6,7,8,9,10,11,12] #SET MONTHS TO ANALYZE
 zones = ['ALL'] # Set to 'ALL' to analyze all BSAs
 baseline_semiwindow = 15
 semiwindow_max = 60
