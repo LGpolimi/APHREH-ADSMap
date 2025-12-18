@@ -53,7 +53,7 @@ def generate_chart(wmarm_db):
     th, l = np.meshgrid(th_values, l_values)
     wmarm = wmarm_db.values.T  # Transpose to match the shape of th and l
     # Create a 3D plot
-    fig = plt.figure()
+    fig = plt.figure(figsize=(12, 8), constrained_layout=True)
     ax = fig.add_subplot(111, projection='3d')
     # Plot the surface
     surf = ax.plot_surface(th, l, wmarm, cmap='coolwarm', edgecolor='none')
@@ -61,15 +61,16 @@ def generate_chart(wmarm_db):
     fig.colorbar(surf, ax=ax, shrink=0.5, aspect=5)
     # Set tick labels
     ax.set_xticks(th_values)
-    ax.set_xticklabels([f'{x:.2f}' for x in conf.exposure_percentile_list])
+    ax.set_xticklabels([f'{x:.2f}' for x in conf.exposure_percentile_list], rotation=45, ha='right', va='top')
     ax.set_yticks(l_values)
-    ax.set_yticklabels([str(x) for x in list(range(conf.lag_params[0], conf.lag_params[1]+1, conf.lag_params[2]))])
+    ax.set_yticklabels([str(x) for x in list(range(conf.lag_params[0], conf.lag_params[1] + 1, conf.lag_params[2]))],rotation=0)
+    fig.subplots_adjust(bottom=0.2)
     # Set labels
-    ax.set_xlabel('Exposure Percentile Threshold')
-    ax.set_ylabel('Lag Days')
-    ax.set_zlabel('WMARM')
+    ax.set_xlabel('Exposure Percentile Threshold', labelpad=20)
+    ax.set_ylabel('Lag Days', labelpad=10)
+    ax.set_zlabel('WMARM', labelpad=10)
     # Set title
-    ax.set_title('3D Surface Plot of WMARM*')
+    ax.set_title('3D Surface Plot of WMARM*', pad=20)
     # Rotate
     ax.view_init(azim=160)
     # Extend the x-axis limits
@@ -78,9 +79,15 @@ def generate_chart(wmarm_db):
     plt.show()
 
     if conf.saveout == 1:
-        if not os.path.isdir(conf.outpath + 'PLOT\\'):
-            os.mkdir(conf.outpath + 'PLOT\\')
-        fig.savefig(conf.outpath + 'PLOT\\WMARM.tiff')
+        plot_dir = os.path.join(conf.outpath, 'PLOT')
+        os.makedirs(plot_dir, exist_ok=True)
+
+        fig.savefig(
+            os.path.join(plot_dir, 'WMARM.tiff'),
+            bbox_inches='tight',  # trims extra whitespace, preserves labels
+            pad_inches=0.2,  # slight padding to avoid cropping
+            dpi=300  # higher resolution for publication-quality output
+        )
         wmarm_db.index.rename('Exposure Threshold [%] VS Time Lag [days]', inplace=True)
         for col in wmarm_db.columns:
             wmarm_db.rename(columns={col: f'LAG {col}'}, inplace=True)

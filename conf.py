@@ -4,9 +4,9 @@ from datetime import timedelta
 
 # PATHS
 
-model_version = 'V10'
-dspath = 'D:\\HEALTH_GEOMATICS\\projects_in_progress\\2501-VulnerabilityIndex\\25 03 - V2\\Set_up_I\\datasource\\analysis_ready\\'
-respath = 'D:\\HEALTH_GEOMATICS\\projects_in_progress\\2501-VulnerabilityIndex\\25 03 - V2\\Set_up_I\\results\\'
+model_version = 'PUB1'
+dspath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\25 03 - V2\\Set_up_III\\datasource\\analysis_ready\\'
+respath = 'D:\\Lorenzo Documents\\Lorenzo\\Research Documents\\2024 07 - EnvironmentalEpidemiology\\24 10 - Vulnerability Model\\25 03 - V2\\Set_up_III\\results\\'
 outpath = respath + model_version + '\\'
 if not os.path.isdir(respath):
     os.mkdir(respath)
@@ -26,11 +26,11 @@ uncertainty_flag = 1 # Flag to launch uncertainty analysis on highest values
 
 exposure_db_name = 'exposure_data.csv'
 outcome_db_name = 'outcome_data.csv'
-reference_geo_level = 'MIL2A'
+reference_geo_level = 'LMB3A'
 geoid = reference_geo_level + '_IDcu'
 area_field = reference_geo_level + '_Area'
 incidence_popmultiplier = 100000
-source_geo_level = 'MIL1B'
+source_geo_level = 'LMB1D'
 source_geoid = source_geo_level + '_IDcu'
 cross_area_field = 'Area'
 
@@ -38,14 +38,14 @@ cross_area_field = 'Area'
 
 exposure_nullvalues = [-1,-9999]
 outcome_nullvalues = [-1,-9999]
-years = [2017,2018,2019]
-months = [5,6,7,8,9]
+years = [2015,2016,2017,2018,2019]
+months = [1,2,3,4,5,6,7,8,9,10,11,12]
 zones = ['ALL'] # Set to 'ALL' to analyze all BSAs
 baseline_semiwindow = 15
 semiwindow_max = 60
 bootstrap_iterations = 1000
 random_noise = 0.01
-scale_exposure_threhsold = [20,50] # min likely value, max likely value
+scale_exposure_threhsold = [0,300] # min likely value, max likely value
 uncertainty_nvalues = 5 # Number of highest values to analyze
 uncertainty_iterations = 100
 sensitivity_minmax = [-60,+200,20] # % Change of exposed days events: min, max, step
@@ -56,8 +56,8 @@ if optmode_flag == 0:
     lag_list = [2]
     timelag_list = [timedelta(days=lag_list[0])]
 if optmode_flag == 1:
-    exposure_percentile_params = [0.9,0.95,0.01]
-    lag_params = [0,7,1]
+    exposure_percentile_params = [0.5,0.95,0.05]
+    lag_params = [0,14,1]
     exposure_percentile_list = [x / 100 for x in range(int(exposure_percentile_params[0]*100), int(exposure_percentile_params[1]*100)+1, int(exposure_percentile_params[2]*100))]
     lag_list = list(range(lag_params[0], lag_params[1]+1, lag_params[2]))
     timelag_list = [timedelta(days=l) for l in lag_list]
