@@ -1,0 +1,189 @@
+{
+  "schema": "APHREH_DISK_DEV_V1",
+  "profile": "USER",
+  "data_dir": ".",
+  "output_dir": "../projects/new_project",
+  "thresholds": [
+    90,
+    95,
+    99
+  ],
+  "lags": [
+    0,
+    1,
+    2
+  ],
+  "seed": 1,
+  "population_policy": {
+    "mode": "ANNUAL_NEAREST"
+  },
+  "core": {
+    "baseline": {
+      "day_of_week_matching": false,
+      "dynamic_enlargement": true,
+      "holiday_matching": false,
+      "initial_half_width": 15,
+      "maximum_half_width": 30,
+      "minimum_eligible_dates": null
+    },
+    "bootstrap": {
+      "iterations": 1000,
+      "maximum_invalid_realization_proportion": 0.2
+    },
+    "dependence": {
+      "annual_dependence_quantile": 0.9,
+      "exposed_episode_quantile": 0.9,
+      "final_block_length_multiplier": 1.0,
+      "local_acf_interval_days": 241,
+      "maximum_acf_lag_days": 60,
+      "minimum_local_observations": 240,
+      "negligible_lag_persistence": 5,
+      "smoothing_window_days": 15,
+      "trend_window_days": 61
+    },
+    "exposure": {
+      "mode": "TERRITORY_WIDE_WITH_LOCAL_CONCORDANCE",
+      "threshold_equality_convention": "GREATER_THAN_OR_EQUAL"
+    },
+    "incidence": {
+      "scaling_multiplier": 100000.0
+    },
+    "pairwise_estimation": {
+      "mode": "STANDARD"
+    },
+    "pooling": {
+      "method_version": "REML_MODIFIED_HK_V1"
+    },
+    "support": {
+      "min_baseline_support": null,
+      "min_bootstrap_validity_rate": null,
+      "min_contributing_years": null,
+      "min_effective_weighted_sample_size": null,
+      "min_event_contribution": null,
+      "min_exposed_observations": null,
+      "min_local_concordance": null,
+      "min_nonexposed_observations": null
+    }
+  },
+  "optimization": {
+    "minimum_bsa_coverage": 0.8,
+    "minimum_persistence_pi": 0.8,
+    "minimum_population_coverage": 0.8,
+    "near_optimal_relative_tolerance_epsilon": 0.1,
+    "null_randomization_rule": {
+      "parameters": {
+        "minimum_shift_days": 30
+      },
+      "rule": "CIRCULAR_DISPLACEMENT"
+    },
+    "null_realizations_R": 100,
+    "search_adjusted_alpha": 0.05
+  },
+  "calibration": {
+    "calibration_threshold": null,
+    "effect_classes": [
+      {
+        "exact_null": true,
+        "lower_percentile": null,
+        "name": "exact_null",
+        "upper_percentile": null
+      },
+      {
+        "exact_null": false,
+        "lower_percentile": 0.4,
+        "name": "negligible",
+        "upper_percentile": 0.6
+      },
+      {
+        "exact_null": false,
+        "lower_percentile": 0.25,
+        "name": "moderate_protective",
+        "upper_percentile": 0.4
+      },
+      {
+        "exact_null": false,
+        "lower_percentile": 0.6,
+        "name": "moderate_harmful",
+        "upper_percentile": 0.75
+      },
+      {
+        "exact_null": false,
+        "lower_percentile": 0.0,
+        "name": "strong_protective",
+        "upper_percentile": 0.25
+      },
+      {
+        "exact_null": false,
+        "lower_percentile": 0.75,
+        "name": "strong_harmful",
+        "upper_percentile": 1.0
+      }
+    ],
+    "generating_threshold_lag_pairs": null,
+    "mode": "SOFT",
+    "number_of_realizations": 50,
+    "run_exact_null_surface_check": false,
+    "threshold_lag_amplitude_class": "moderate_harmful",
+    "threshold_lag_response_modes": [
+      "STEP",
+      "LINEAR_RAMP"
+    ],
+    "primary_threshold_lag_response_mode": "STEP"
+  },
+  "runtime": {
+    "worker_count": 1,
+    "bootstrap_batch_size": 32,
+    "retain_bootstrap_arrays": false,
+    "retain_daily_intermediates": false,
+    "minimum_free_disk_mb": 256
+  },
+  "sources": {
+    "hazard_file": "hazard.csv",
+    "outcome_file": "outcome.csv",
+    "population_file": "population.csv",
+    "crosswalk_file": "crosswalk.csv",
+    "hazard_date_field": "date",
+    "outcome_date_field": "date",
+    "bsa_id_field": "bsa_id",
+    "bsa_area_field": "area",
+    "population_fields": {
+      "2020": "population_2020"
+    },
+    "crosswalk_bsa_field": "bsa_id",
+    "grid_id_field": "grid_id",
+    "intersection_area_field": "intersection_area",
+    "geometry_bsa_field": "bsa_id"
+  },
+  "notes": [
+    "Generic template: select your own data folder, source files and column mappings before running.",
+    "Tune Monte Carlo sizes and robustness settings to your study design."
+  ],
+  "analysis_period": {
+    "mode": "COMMON_DATES"
+  },
+  "robustness": {
+    "enabled": false,
+    "implementation_stage": "FINGERPRINT_SURFACE_COMPARISON",
+    "analysis_1_region_stability": {
+      "enabled": true,
+      "minimum_valid_cell_proportion": null
+    },
+    "analysis_2_support_sensitivity": {
+      "enabled": false,
+      "scenarios": []
+    },
+    "analysis_3_bsa_specific_exposure": {
+      "enabled": false,
+      "label": "BSA-specific exposure classification",
+      "comparison_mode": "FIXED_PARAMETER"
+    },
+    "analysis_4_baseline_sensitivity": {
+      "enabled": false,
+      "scenarios": []
+    },
+    "analysis_5_dependence_sensitivity": {
+      "enabled": false,
+      "scenarios": []
+    }
+  }
+}

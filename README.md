@@ -1,233 +1,108 @@
-# APHREH ADSMap Pipeline
+# APHREH-ADSMap 2.0.1
 
-This repository implements APHREH-ADSMap: Acute Public-Health Risks from Environmental Hazards - Automated Data-driven Statistical Mapping. It is a full computational workflow to estimate spatial health vulnerability linked to environmental exposures. The pipeline identifies exposed and non-exposed days, computes incidence differentials, performs bootstrap-based effect estimation, aggregates results across years, and derives summary metrics including MARM and WMARM. It also includes optional uncertainty and sensitivity analyses.
+APHREH-ADSMap is a desktop application for spatial epidemiological analysis of associations between environmental hazards and health outcomes. It provides threshold-lag analyses, BSA-level risk coefficients, uncertainty-aware pooling, parameter optimization, synthetic calibration, robustness/sensitivity workflows, candidate-confounder adjustment and an interactive results workspace.
 
-All behaviour is controlled through the configuration file conf.py.
+This distribution contains the executable Python sources and no datasets. Supply your own study-specific input data.
 
----
+## Requirements
 
-## 1. Method Overview
+* Windows, macOS or Linux with a desktop environment and Python 3.11 to 3.13 (64-bit recommended).
+* Python packages `numpy`, `scipy`, `psutil` and `matplotlib` from `requirements.txt`.
+* Python Tkinter for the desktop interface. Tkinter is commonly included in standard Python installers for Windows and macOS; on some Linux distributions it must be installed separately (for example, `python3-tk`).
+* Sufficient free disk space and available RAM for the study size. Larger threshold-lag grids and Monte Carlo counts can require substantial computation.
 
-### Exposure and Non-Exposure Days
-For each year and parameter combination (exposure percentile and lag), exposure thresholds are computed and days are classified into exposed or non-exposed.
+The application does not require QGIS, PyQGIS, Qt, a GIS server, or a database server. Source geometry for maps is optional; when supplied, the results workspace supports GeoJSON and GeoPackage.
 
-### Incidence and Incidence Differentials
-Daily incidence is computed per spatial unit (BSA), considering lagged effects. Incidence differentials compare exposed versus baseline conditions.
+## Install and start
 
-### Vulnerability Index
-A bootstrap implementation of a weighted Mann-Whitney procedure estimates effect sizes and confidence intervals for each spatial unit.
+Extract the archive into a directory of your choice. Open a terminal in the directory containing `main.py`, then create a virtual environment and install the dependencies.
 
-### MARM and WMARM
-Indexes across years are aggregated and standardised. Two summary measures are produced:
+Windows (PowerShell, using Python 3.12; substitute 3.11 or 3.13 if appropriate):
 
-- MARM: multi-annual relative measure
-- WMARM: population-weighted MARM (used for identifying the optimal parameters)
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe main.py
+```
 
-The maximum WMARM determines the optimal exposure-threshold/lag combination.
+macOS / Linux (check that `python3 --version` reports Python 3.11, 3.12 or 3.13):
 
----
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python main.py
+```
 
-## 2. Repository Structure
+Use the **New project** form to select the folder containing your input files and the destination project directory. Select **Data sources and field mapping > Configure** to set the four required CSV files and their exact column names. The values in `configs/default.json` are generic placeholders, not an included example dataset.
 
-main.py<br>
-conf.py<br>
-data_import.py<br>
-A_expnonexp_days.py<br>
-B_incidence_diff.py<br>
-C_compute_index.py<br>
-D_post_process.py<br>
-E_compute_MARM.py<br>
-F_prepare_output.py<br>
-G_sensitivity_analysis.py<br>
-db_filters.py<br>
-multifile_iterator.py<br>
-README.md<br>
-LICENSE<br>
+A project directory is created when you start an analysis. Do not reuse an output directory for another dataset or for altered reference scientific settings. For an existing project, choose **Open project** and select the directory containing `resolved_config.json` and `results.sqlite`.
 
+## Required input structure
 
-Run the full workflow by executing:
+Provide four CSV tables using the column mappings in **Data sources and field mapping**:
 
-python main.py
+1. **Hazard**: one date column and spatial-grid exposure columns, with grid identifiers matching the crosswalk.
+2. **Outcome**: one date column and one column per BSA, named exactly as the BSA identifiers in the population table. The observed outcome is **daily integer event counts**, not pre-normalized incidence.
+3. **Population**: one row per BSA, including BSA identifier, area and population estimates mapped to one or more years.
+4. **Crosswalk**: BSA-to-grid intersections, identifying BSA, grid cell and intersection area.
 
----
+The hazard grid column names must match the crosswalk grid identifiers, and each BSA must have strictly positive intersection-area coverage. The exact wide-table conventions and source checks are enforced by the application when running. Set column mappings to your own files rather than trying to rename study data to match placeholders. Hazard and outcome dates must overlap exactly. Supported date formats include `YYYY-MM-DD`, `YYYYMMDD` and six-digit `YYMMDD` (interpreted as years 20YY).
 
-## 3. Required Input Data
+Optional inputs are geometry (GeoPackage or GeoJSON for spatial visualization), an external holiday calendar (when holiday matching is enabled), and candidate-confounder hazard/crosswalk CSV sources (when confounder adjustment is requested).
 
-Place input files in the directory specified by conf.dspath.
+All source paths can be selected in the interface or specified in a JSON configuration. Paths are evaluated on the machine where the project is executed. Avoid copying another machine's absolute paths into your configuration.
 
-### Mandatory files
+## Running an analysis
 
-| File | Description |
-|------|-------------|
-| exposure_data.csv | Exposure grid with DATE_STR and spatial unit columns |
-| outcome_data.csv | Outcome (e.g. health events) time series with DATE_STR |
-| {reference_geo_level}.csv | Reference grid with population fields POP_YYYY |
-| {source_geo_level}{reference_geo_level}.csv | Cross-grid mapping linking exposure grid and analysis grid |
+1. Select **New project**, then set an input directory and a new output directory.
+2. Configure source tables and verify their column mappings, analysis thresholds, cumulative lags, Monte Carlo counts and population-year policy.
+3. Use the relevant configuration panels to review calibration, robustness/sensitivity and confounder adjustment settings.
+4. Choose the workflow and select **Save project and run**. The console reports progress; durable results and checkpoints are written under the project directory.
+5. Select **Results workspace** to inspect surfaces, diagnostics, calibration, spatial maps, BSA-specific results and available exports. Completed projects can be reopened without rerunning the model.
 
-### Required fields
+The standard reference analysis uses exact common hazard/outcome dates. Missing intervening days are not silently treated as consecutive. If a population estimate is unavailable for an analysis year, the `ANNUAL_NEAREST` population policy chooses the nearest configured population year, with ties resolved toward the more recent year. Check whether this assumption is appropriate for your study.
 
-Exposure and outcome datasets:
-- DATE_STR in format %y%m%d
-- One numeric column per spatial unit
+A production study should select statistically and computationally appropriate values for bootstrap iterations, null searches, calibration realizations, support constraints and robustness checks. Template defaults are starting settings, not a guarantee of inferential adequacy. Robustness/sensitivity Analyses 2–5 are not started by default unless configured or explicitly launched from **Run robustness / sensitivity**.
 
-Reference grid:
-- Column matching conf.geoid
-- One or more POP_YYYY columns
+### Batch execution without the desktop interface
 
-Cross grid:
-- Columns matching conf.source_geoid and conf.geoid
-- Area field used for proportional allocation
+For example, after editing `configs/default.json` or preparing your own configuration:
 
----
+```bash
+python main.py --headless --config configs/default.json --input /path/to/input --output /path/to/project --phase all
+```
 
-## 4. Configuration (conf.py)
+Replace the two example paths with locations on your machine. On Windows, use Windows paths. Supported phases are `all`, `reference`, `calibration`, `robustness` and `confounder`. `robustness` and `confounder` require a compatible, previously completed reference project.
 
-Important settings include:
+To review command-line options use `python main.py --headless --help`.
 
-### Paths
-dspath<br>
-respath<br>
-model_version<br>
+## Output and checkpoint management
 
-### Temporal subsets
-years<br>
-months<br>
-zones<br>
+Each run maintains a project `manifest.json`, `resolved_config.json`, canonical data, `results.sqlite`, generated results, execution logs and checkpoint state. Treat `results.sqlite` and the `canonical` directory as part of the same project; do not delete or edit either while a project is active. The results workspace can open results created in another session. Resume the same project only with compatible code, inputs and reference configuration; unsupported changes are deliberately blocked to protect reproducibility.
 
+On machines without a graphical desktop, headless execution remains available but the interactive Results workspace does not open. Matplotlib supports saving BSA-specific figures when invoked through the workspace on a desktop system.
 
-### Exposure threshold and lag search
-exposure_percentile_params = [start, end, step]<br>
-lag_params = [min, max, step]<br>
+## Methodological references
 
+The authoritative mathematical documents are published together at **[APHREH-ADSMap mathematical formulation, Zenodo DOI 10.5281/zenodo.18671472](https://doi.org/10.5281/zenodo.18671472)**. They are not duplicated in this software archive. The internal configuration schema identifier is retained for compatibility with previously saved projects. The filenames below are the canonical document names specified by the accompanying DOI register.
 
-### Statistical parameters
-bootstrap_iterations<br>
-baseline_semiwindow<br>
-semiwindow_max<br>
-random_noise<br>
+| Module | Exact document in the Zenodo repository | Relevant formulation / section pointers |
+| --- | --- | --- |
+| MF, core mathematical formulation | `APHREH_ADSMap_P03_MF_mathematical_formulation.pdf` | core formulation, source harmonization, temporal dependence and estimator; MF §3.2 (dependence), MF §4.1 (pooling) |
+| PO, parameter optimization | `APHREH_ADSMap_P03_PO_parameter_optimization.pdf` | leave-one-year-out surfaces, synchronized null searches, search-adjusted support, robust-region selection and fingerprint |
+| RS, robustness and sensitivity | `APHREH_ADSMap_P03_RS_robustness_sensitivity.pdf` | stability, support, BSA-specific exposure, baseline and dependence sensitivity, fixed-point comparison and reoptimization |
+| CA, confounder adjustment | `APHREH_ADSMap_P03_CA_confounder_adjustment.pdf` | cross-fitting and candidate profiling; CA §§5.1, 7.3, 8.1, 9.2, 9.4, 9.6, 16.2 and 18 are cross-referenced in the implementation |
+| CM, calibration | `APHREH_ADSMap_P03_CM_calibration.pdf` | RC-magnitude calibration and STEP/LINEAR_RAMP threshold-lag calibration, including synthetic outcome generation and recovery |
 
+Section pointers above are implementation cross-references. Consult the PDFs for their complete formulations and authoritative section numbering. For publication-related reproducibility material, see [publication supplementaries, DOI 10.5281/zenodo.18671558](https://doi.org/10.5281/zenodo.18671558).
 
-### Optional analyses
-uncertainty_flag<br>
-uncertainty_nvalues<br>
-uncertainty_iterations<br>
+## Distribution contents
 
-sens_an_iterations<br>
-sensitivity_minmax<br>
-
-
-### Output control
-saveout = 1 or 0
-
-
----
-
-## 5. Workflow Executed by main.py
-
-### Step 1. Import and harmonise data
-- Load exposure, outcome, reference grid, cross grid
-- Restrict to selected years and months
-- Harmonise datasets using uniform_data()
-- Reproject exposure grid onto analysis grid via cross-grid weights
-
-### Step 2. Parameter sweep
-For each combination of exposure percentile and lag:
-1. Compute yearly exposure thresholds
-2. Identify exposed and non-exposed days
-3. Compute incidence and baseline incidence
-4. Compute incidence differentials
-5. Bootstrap effect estimation and confidence intervals for each year
-6. Aggregate across years (median, IQR)
-7. Compute MARM and WMARM
-8. Save outputs if enabled
-
-Each parameter combination results in a directory:<br>
-Parametric/PXX_LYY/
-
-
-### Step 3. Identify optimal parameters
-The parameter pair with the highest WMARM value is identified, and its folder is copied to:<br>
-MAX_WMARM_PXX_LYY/
-
-
-### Step 4. Uncertainty analysis (optional)
-Recomputes WMARM distributions for the top N parameter combinations.
-
-### Step 5. Parameter surface plot
-A 3D surface plot of WMARM is saved in:<br>
-PLOT/
-
-
-### Step 6. Sensitivity analysis (optional)
-Modifies incidence during exposed days by controlled percentages and measures changes in WMARM.
-
----
-
-## 6. Running the Pipeline
-
-### 1. Install dependencies
-pip install pandas numpy scipy matplotlib dbfread<br>
-
-
-### 2. Configure conf.py
-Set paths such as:<br>
-dspath = "path/to/data/"<br>
-respath = "path/to/results/"<br>
-model_version = "v1/"<br>
-
-
-### 3. Run
-python main.py
-
-
----
-
-## 7. Output Structure
-
-Example folder structure under respath:<br>
-
-v1/<br>
-Parametric/<br>
-P90_L3/<br>
-index_raw.csv<br>
-index_formatted.csv<br>
-index_cumulated_raw.csv<br>
-index_cumulated_formatted.csv<br>
-marm_value.txt<br>
-wmarm_value.txt<br>
-
-MAX_WMARM_P90_L3/<br>
-
-PLOT/<br>
-WMARM.tiff<br>
-WMARM.csv<br>
-
-Years/<br>
-exposure_thresholds.csv<br>
-
-Uncertainty_analysis/<br>
-Uncertainty_analysis.csv<br>
-
-Sensitivity_analysis/<br>
-Sensitivity_analysis.tiff<br>
-Sensitivity_analysis_interpolated.tiff<br>
-
-
-### Main outputs
-
-| File | Meaning |
-|------|---------|
-| index_raw.csv | Multi-year vulnerability values |
-| index_formatted.csv | Readable version including confidence intervals |
-| index_cumulated_raw.csv | Median and IQR across years |
-| marm_value.txt | MARM summary |
-| wmarm_value.txt | WMARM summary |
-| WMARM.csv | WMARM for all parameter combinations |
-| exposure_thresholds.csv | Yearly thresholds |
-
-
-## 8. License
-
-This repository is provided under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International license.
-
-See the LICENSE file for the full terms.
+```text
+main.py                    desktop / headless launcher
+requirements.txt           Python dependencies
+configs/default.json       generic editable configuration template
+aphreh_adsmap/             runtime code (estimator, GUI, results, calibration,
+                           optimization, robustness and confounder modules)
+README.md                  installation, usage and methodology references
+```
